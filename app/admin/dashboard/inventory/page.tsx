@@ -331,12 +331,32 @@ export default function InventoryPage() {
                     </thead>
                     <tbody>
                         {loading ? (
-                            <tr>
-                                <td colSpan={7} className={styles.loadingCell}>
-                                    <Loader2 className={styles.spinner} size={24} />
-                                    <span>Loading inventory...</span>
-                                </td>
-                            </tr>
+                            // Skeleton loader rows
+                            [...Array(6)].map((_, index) => (
+                                <tr key={index} className={styles.skeletonRow}>
+                                    <td>
+                                        <div className={styles.skeletonProduct}>
+                                            <div className={`${styles.skeleton} ${styles.skeletonImg}`}></div>
+                                            <div className={styles.skeletonInfo}>
+                                                <div className={`${styles.skeleton} ${styles.skeletonTitle}`}></div>
+                                                <div className={`${styles.skeleton} ${styles.skeletonSubtitle}`}></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td><div className={`${styles.skeleton} ${styles.skeletonSku}`}></div></td>
+                                    <td><div className={`${styles.skeleton} ${styles.skeletonCategory}`}></div></td>
+                                    <td><div className={`${styles.skeleton} ${styles.skeletonStock}`}></div></td>
+                                    <td><div className={`${styles.skeleton} ${styles.skeletonPrice}`}></div></td>
+                                    <td><div className={`${styles.skeleton} ${styles.skeletonStatus}`}></div></td>
+                                    <td>
+                                        <div className={styles.skeletonActions}>
+                                            <div className={`${styles.skeleton} ${styles.skeletonBtn}`}></div>
+                                            <div className={`${styles.skeleton} ${styles.skeletonBtn}`}></div>
+                                            <div className={`${styles.skeleton} ${styles.skeletonBtn}`}></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
                         ) : filteredInventory.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className={styles.emptyCell}>

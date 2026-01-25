@@ -8,15 +8,19 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    overflow-y: auto;
 }
 
 .modal {
     width: 100%;
     max-width: 480px;
+    max-height: calc(100vh - 4rem);
     background: white;
     border-radius: 16px;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 .header {
@@ -123,6 +127,8 @@
 /* Form */
 .form {
     padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
 }
 
 /* Adjustment Types */

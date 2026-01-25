@@ -44,7 +44,7 @@ export default function Sidebar() {
         <aside className={styles.sidebar}>
             <div className={styles.logo}>
                 <Image src="/logo.png" alt="AOSA Logo" width={40} height={40} />
-                <span>Admin AOSA</span>
+                <span>Admin OAA</span>
             </div>
 
             <nav className={styles.nav}>
