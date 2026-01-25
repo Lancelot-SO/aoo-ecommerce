@@ -1,0 +1,524 @@
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+    ShoppingBag,
+    Search,
+    Filter,
+    Download,
+    ChevronRight,
+    Eye,
+    Calendar,
+    ArrowUpRight,
+    Loader2,
+    AlertCircle,
+    Play,
+    RefreshCw,
+    Clock,
+    Zap
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/lib/supabase";
+import styles from "./orders.module.css";
+
+interface OrderItem {
+    product_id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    size?: string;
+}
+
+interface Order {
+    id: string;
+    order_number: string;
+    customer_name: string;
+    customer_email: string;
+    customer_phone: string;
+    delivery_address: string;
+    items: OrderItem[];
+    total: number;
+    payment_status: string;
+    order_status: string;
+    created_at: string;
+}
+
+interface SimulationState {
+    isRunning: boolean;
+    currentOrderId: string | null;
+    stage: string;
+    timeRemaining: number;
+}
+
+// Order flow stages with timing (in seconds)
+const ORDER_FLOW_STAGES = [
+    { payment_status: 'pending', order_status: 'pending', label: 'Pending', duration: 60 },      // 1 minute
+    { payment_status: 'paid', order_status: 'pending', label: 'Paid', duration: 30 },           // 30 seconds
+    { payment_status: 'paid', order_status: 'processing', label: 'Processing', duration: 30 },  // 30 seconds
+    { payment_status: 'paid', order_status: 'shipped', label: 'Shipped', duration: 30 },        // 30 seconds
+    { payment_status: 'paid', order_status: 'delivered', label: 'Delivered', duration: 0 },     // Final state
+];
+
+export default function OrdersPage() {
+    const [activeTab, setActiveTab] = useState("All Orders");
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [simulation, setSimulation] = useState<SimulationState>({
+        isRunning: false,
+        currentOrderId: null,
+        stage: '',
+        timeRemaining: 0
+    });
+    const [recentUpdate, setRecentUpdate] = useState<string | null>(null);
+
+    const simulationTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const countdownRef = useRef<NodeJS.Timeout | null>(null);
+
+    // Fetch orders
+    const fetchOrders = useCallback(async () => {
+        try {
+            setLoading(true);
+            setError(null);
+            const { data, error: fetchError } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (fetchError) throw fetchError;
+            setOrders(data || []);
+        } catch (err: any) {
+            console.error('Error fetching orders:', err);
+            setError(err.message || 'Failed to fetch orders');
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    // Setup real-time subscription
+    useEffect(() => {
+        fetchOrders();
+
+        // Subscribe to real-time changes
+        const channel = supabase
+            .channel('orders-realtime')
+            .on(
+                'postgres_changes',
+                { event: '*', schema: 'public', table: 'orders' },
+                (payload) => {
+                    console.log('Real-time update:', payload);
+
+                    if (payload.eventType === 'INSERT') {
+                        setOrders(prev => [payload.new as Order, ...prev]);
+                        setRecentUpdate(payload.new.id as string);
+                    } else if (payload.eventType === 'UPDATE') {
+                        setOrders(prev => prev.map(order =>
+                            order.id === payload.new.id ? payload.new as Order : order
+                        ));
+                        setRecentUpdate(payload.new.id as string);
+                    } else if (payload.eventType === 'DELETE') {
+                        setOrders(prev => prev.filter(order => order.id !== payload.old.id));
+                    }
+
+                    // Clear highlight after 2 seconds
+                    setTimeout(() => setRecentUpdate(null), 2000);
+                }
+            )
+            .subscribe();
+
+        return () => {
+            supabase.removeChannel(channel);
+            if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+            if (countdownRef.current) clearInterval(countdownRef.current);
+        };
+    }, [fetchOrders]);
+
+    // Update order status in database
+    const updateOrderStatus = async (orderId: string, paymentStatus: string, orderStatus: string) => {
+        const { error } = await supabase
+            .from('orders')
+            .update({
+                payment_status: paymentStatus,
+                order_status: orderStatus,
+                updated_at: new Date().toISOString()
+            })
+            .eq('id', orderId);
+
+        if (error) {
+            console.error('Error updating order:', error);
+            throw error;
+        }
+    };
+
+    // Create a test order for simulation
+    const createTestOrder = async (): Promise<string | null> => {
+        const testNames = ['Kwame Asante', 'Ama Mensah', 'Kofi Boateng', 'Akua Owusu', 'Yaw Appiah'];
+        const testEmails = ['kwame@test.com', 'ama@test.com', 'kofi@test.com', 'akua@test.com', 'yaw@test.com'];
+        const randomIndex = Math.floor(Math.random() * testNames.length);
+
+        const orderData = {
+            order_number: `TEST-${Date.now().toString(36).toUpperCase()}`,
+            customer_name: testNames[randomIndex],
+            customer_email: testEmails[randomIndex],
+            customer_phone: '024' + Math.floor(Math.random() * 10000000).toString().padStart(7, '0'),
+            delivery_address: 'Test Address, Accra',
+            items: [{ product_id: 'test-1', name: 'Test Product', price: 150, quantity: 2 }],
+            subtotal: 300,
+            delivery_fee: 25,
+            total: 325,
+            payment_method: 'momo',
+            payment_status: 'pending',
+            order_status: 'pending'
+        };
+
+        const { data, error } = await supabase
+            .from('orders')
+            .insert([orderData])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating test order:', error);
+            return null;
+        }
+
+        return data.id;
+    };
+
+    // Run the order flow simulation
+    const runSimulation = async (orderId: string, stageIndex: number = 0) => {
+        if (stageIndex >= ORDER_FLOW_STAGES.length - 1) {
+            // Simulation complete
+            setSimulation(prev => ({
+                ...prev,
+                isRunning: false,
+                stage: 'Complete!',
+                timeRemaining: 0
+            }));
+            return;
+        }
+
+        const currentStage = ORDER_FLOW_STAGES[stageIndex];
+        const nextStage = ORDER_FLOW_STAGES[stageIndex + 1];
+
+        setSimulation(prev => ({
+            ...prev,
+            stage: currentStage.label,
+            timeRemaining: currentStage.duration
+        }));
+
+        // Start countdown
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        countdownRef.current = setInterval(() => {
+            setSimulation(prev => ({
+                ...prev,
+                timeRemaining: Math.max(0, prev.timeRemaining - 1)
+            }));
+        }, 1000);
+
+        // Schedule next stage
+        simulationTimerRef.current = setTimeout(async () => {
+            if (countdownRef.current) clearInterval(countdownRef.current);
+
+            try {
+                await updateOrderStatus(orderId, nextStage.payment_status, nextStage.order_status);
+                runSimulation(orderId, stageIndex + 1);
+            } catch (err) {
+                setSimulation(prev => ({
+                    ...prev,
+                    isRunning: false,
+                    stage: 'Error',
+                    timeRemaining: 0
+                }));
+            }
+        }, currentStage.duration * 1000);
+    };
+
+    // Start simulation
+    const startSimulation = async () => {
+        if (simulation.isRunning) return;
+
+        setSimulation({
+            isRunning: true,
+            currentOrderId: null,
+            stage: 'Creating order...',
+            timeRemaining: 0
+        });
+
+        const orderId = await createTestOrder();
+        if (!orderId) {
+            setSimulation({
+                isRunning: false,
+                currentOrderId: null,
+                stage: 'Failed to create order',
+                timeRemaining: 0
+            });
+            return;
+        }
+
+        setSimulation(prev => ({
+            ...prev,
+            currentOrderId: orderId
+        }));
+
+        // Start the flow
+        runSimulation(orderId, 0);
+    };
+
+    // Stop simulation
+    const stopSimulation = () => {
+        if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
+        if (countdownRef.current) clearInterval(countdownRef.current);
+        setSimulation({
+            isRunning: false,
+            currentOrderId: null,
+            stage: '',
+            timeRemaining: 0
+        });
+    };
+
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+    };
+
+    const getItemCount = (items: OrderItem[]) => {
+        if (!items || !Array.isArray(items)) return 0;
+        return items.reduce((sum, item) => sum + (item.quantity || 1), 0);
+    };
+
+    const getDisplayStatus = (order: Order) => {
+        if (order.order_status === 'cancelled') return 'Cancelled';
+        if (order.order_status === 'delivered') return 'Delivered';
+        if (order.order_status === 'shipped') return 'Shipped';
+        if (order.order_status === 'processing') return 'Processing';
+        if (order.payment_status === 'paid') return 'Paid';
+        return 'Pending';
+    };
+
+    const getStatusClass = (status: string) => {
+        switch (status.toLowerCase()) {
+            case 'paid': return styles.statusPaid;
+            case 'shipped': return styles.statusShipped;
+            case 'processing': return styles.statusProcessing;
+            case 'delivered': return styles.statusDelivered;
+            case 'cancelled': return styles.statusCancelled;
+            default: return styles.statusPending;
+        }
+    };
+
+    const filteredOrders = orders.filter(order => {
+        const status = getDisplayStatus(order).toLowerCase();
+        const matchesTab = activeTab === "All Orders" || status === activeTab.toLowerCase();
+        const matchesSearch = searchQuery === "" ||
+            order.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            order.customer_email.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesTab && matchesSearch;
+    });
+
+    const tabs = ["All Orders", "Processing", "Shipped", "Delivered", "Cancelled"];
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
+    };
+
+    const itemVariants = {
+        hidden: { opacity: 0, y: 20 },
+        visible: { opacity: 1, y: 0 }
+    };
+
+    const formatTime = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    return (
+        <motion.div
+            className={styles.container}
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            {/* Simulation Panel */}
+            <motion.div className={styles.simulationPanel} variants={itemVariants}>
+                <div className={styles.simulationHeader}>
+                    <div className={styles.simulationTitle}>
+                        <Zap size={20} />
+                        <h3>Order Flow Simulation</h3>
+                    </div>
+                    {!simulation.isRunning ? (
+                        <button className={styles.simulateBtn} onClick={startSimulation}>
+                            <Play size={16} />
+                            Start Simulation
+                        </button>
+                    ) : (
+                        <button className={styles.stopBtn} onClick={stopSimulation}>
+                            Stop
+                        </button>
+                    )}
+                </div>
+
+                {simulation.isRunning && (
+                    <div className={styles.simulationProgress}>
+                        <div className={styles.progressStages}>
+                            {ORDER_FLOW_STAGES.map((stage, idx) => (
+                                <div
+                                    key={stage.label}
+                                    className={`${styles.progressStage} ${simulation.stage === stage.label ? styles.activeStage :
+                                            ORDER_FLOW_STAGES.findIndex(s => s.label === simulation.stage) > idx ? styles.completedStage : ''
+                                        }`}
+                                >
+                                    <span className={styles.stageDot}></span>
+                                    <span className={styles.stageLabel}>{stage.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={styles.timerDisplay}>
+                            <Clock size={16} />
+                            <span>Next stage in: <strong>{formatTime(simulation.timeRemaining)}</strong></span>
+                        </div>
+                    </div>
+                )}
+
+                <p className={styles.simulationDesc}>
+                    Creates a test order and progresses it through: Pending (1 min) → Paid (30s) → Processing (30s) → Shipped (30s) → Delivered
+                </p>
+            </motion.div>
+
+            <header className={styles.header}>
+                <div className={styles.headerTitle}>
+                    <h1>Order Management</h1>
+                    <p>Manage and track alumni orders and school shop sales.</p>
+                </div>
+                <div className={styles.headerTools}>
+                    <div className={styles.searchWrapper}>
+                        <Search size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search order ID, customer..."
+                            className={styles.searchInput}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                    <button className={styles.filterBtn} onClick={fetchOrders}>
+                        <RefreshCw size={18} />
+                        Refresh
+                    </button>
+                    <button className={styles.exportBtn}>
+                        <Download size={18} />
+                        Export
+                    </button>
+                </div>
+            </header>
+
+            <div className={styles.tabs}>
+                {tabs.map(tab => (
+                    <span
+                        key={tab}
+                        className={`${styles.tab} ${activeTab === tab ? styles.activeTab : ""}`}
+                        onClick={() => setActiveTab(tab)}
+                    >
+                        {tab}
+                    </span>
+                ))}
+            </div>
+
+            <motion.div className={styles.tableCard} variants={itemVariants}>
+                {loading ? (
+                    <div className={styles.loadingState}>
+                        <Loader2 className={styles.spinner} size={32} />
+                        <p>Loading orders...</p>
+                    </div>
+                ) : error ? (
+                    <div className={styles.errorState}>
+                        <AlertCircle size={32} />
+                        <p>{error}</p>
+                        <button onClick={fetchOrders} className={styles.retryBtn}>Try Again</button>
+                    </div>
+                ) : filteredOrders.length === 0 ? (
+                    <div className={styles.emptyState}>
+                        <ShoppingBag size={48} />
+                        <h3>No orders found</h3>
+                        <p>{activeTab === "All Orders" ? "No orders have been placed yet." : `No ${activeTab.toLowerCase()} orders.`}</p>
+                    </div>
+                ) : (
+                    <table className={styles.table}>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th>Items</th>
+                                <th>Total Amount</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <AnimatePresence>
+                                {filteredOrders.map((order) => {
+                                    const status = getDisplayStatus(order);
+                                    const isRecentlyUpdated = recentUpdate === order.id;
+                                    const isSimulatedOrder = simulation.currentOrderId === order.id;
+
+                                    return (
+                                        <motion.tr
+                                            key={order.id}
+                                            initial={{ opacity: 0, backgroundColor: '#fff' }}
+                                            animate={{
+                                                opacity: 1,
+                                                backgroundColor: isRecentlyUpdated ? '#fef3c7' : isSimulatedOrder ? '#dbeafe' : '#fff'
+                                            }}
+                                            transition={{ duration: 0.3 }}
+                                            className={isSimulatedOrder ? styles.simulatedRow : ''}
+                                        >
+                                            <td>
+                                                <span style={{ fontWeight: 700 }}>
+                                                    #{order.order_number}
+                                                    {isSimulatedOrder && <span className={styles.liveBadge}>LIVE</span>}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div className={styles.customerCell}>
+                                                    <h4>{order.customer_name}</h4>
+                                                    <p>{order.customer_email}</p>
+                                                </div>
+                                            </td>
+                                            <td>{formatDate(order.created_at)}</td>
+                                            <td>{getItemCount(order.items)} Items</td>
+                                            <td style={{ fontWeight: 600 }}>GH₵ {order.total.toLocaleString()}</td>
+                                            <td>
+                                                <motion.span
+                                                    className={`${styles.statusBadge} ${getStatusClass(status)}`}
+                                                    key={status}
+                                                    initial={{ scale: 1.2 }}
+                                                    animate={{ scale: 1 }}
+                                                >
+                                                    {status}
+                                                </motion.span>
+                                            </td>
+                                            <td>
+                                                <button className={styles.viewBtn}>
+                                                    Details <ArrowUpRight size={14} />
+                                                </button>
+                                            </td>
+                                        </motion.tr>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </tbody>
+                    </table>
+                )}
+            </motion.div>
+        </motion.div>
+    );
+}
