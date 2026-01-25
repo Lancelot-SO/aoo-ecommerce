@@ -31,9 +31,16 @@ export default function AboutPage() {
                         </p>
                     </div>
                     <div className={styles.imageContent}>
-                        <div style={{ backgroundColor: '#000', height: '500px', borderRadius: 'var(--radius)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <span style={{ color: 'white', opacity: 0.3, letterSpacing: '0.2em' }}>HISTORIC IMAGE</span>
-                        </div>
+                        <img 
+                            src="https://i.pinimg.com/1200x/6f/a2/cb/6fa2cb3df1b7c0c99b3d22c032f69f7e.jpg" 
+                            alt="Historic Achimota School"
+                            style={{ 
+                                width: '100%', 
+                                height: '500px', 
+                                objectFit: 'cover', 
+                                borderRadius: 'var(--radius)' 
+                            }}
+                        />
                     </div>
                 </div>
             </div>
