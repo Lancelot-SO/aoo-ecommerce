@@ -98,12 +98,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    setUser(null);
-    setSession(null);
-    setIsAdmin(false);
-    setRole(null);
-    await supabase.auth.signOut();
-    router.push("/catalog");
+    try {
+      // 1. Clear local application state immediately
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      setRole(null);
+      
+      // 2. Clear Supabase auth data from localStorage
+      Object.keys(localStorage).forEach(key => {
+        if (key.includes('supabase.auth.token') || key.startsWith('sb-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      // 3. Perform official sign out
+      await supabase.auth.signOut();
+      
+      // 4. Force a hard redirect to ensure all memory states are cleared
+      window.location.href = "/catalog";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback redirect
+      window.location.href = "/catalog";
+    }
   };
 
   return (
