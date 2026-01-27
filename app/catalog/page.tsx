@@ -21,38 +21,64 @@ export default function Catalog() {
     }, []);
 
     useEffect(() => {
-        fetchProducts();
+        let isMounted = true;
+        
+        async function loadProducts() {
+            try {
+                setLoading(true);
+                let query = supabase
+                    .from('products')
+                    .select('*, categories!inner(name)')
+                    .eq('is_active', true);
+
+                if (activeCategory !== "All") {
+                    query = query.eq('categories.name', activeCategory);
+                }
+
+                if (searchQuery) {
+                    query = query.ilike('name', `%${searchQuery}%`);
+                }
+
+                const { data, error } = await query.order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (isMounted) {
+                    setProducts(data || []);
+                }
+            } catch (error: any) {
+                if (isMounted) {
+                    // Ignore abort errors which are expected when navigating quickly
+                    if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+                        return;
+                    }
+                    console.error('Error fetching products:', {
+                        message: error.message,
+                        details: error.details,
+                        hint: error.hint,
+                        code: error.code
+                    });
+                }
+            } finally {
+                if (isMounted) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        loadProducts();
+
+        return () => {
+            isMounted = false;
+        };
     }, [activeCategory, searchQuery]);
 
     async function fetchInitialData() {
-        const { data: catData } = await supabase.from('categories').select('*');
-        setCategories(catData || []);
-    }
-
-    async function fetchProducts() {
         try {
-            setLoading(true);
-            let query = supabase
-                .from('products')
-                .select('*, categories(name)')
-                .eq('is_active', true);
-
-            if (activeCategory !== "All") {
-                query = query.filter('categories.name', 'eq', activeCategory);
-            }
-
-            if (searchQuery) {
-                query = query.ilike('name', `%${searchQuery}%`);
-            }
-
-            const { data, error } = await query.order('created_at', { ascending: false });
-
+            const { data: catData, error } = await supabase.from('categories').select('*');
             if (error) throw error;
-            setProducts(data || []);
-        } catch (error) {
-            console.error('Error fetching products:', error);
-        } finally {
-            setLoading(false);
+            setCategories(catData || []);
+        } catch (error: any) {
+            console.error('Error fetching categories:', error.message);
         }
     }
 

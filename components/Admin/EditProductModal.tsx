@@ -5,6 +5,7 @@ import { X, Save, Loader2, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import styles from "./AddProductModal.module.css";
+import ImageUpload from "./ImageUpload";
 
 interface Product {
     id: string;
@@ -49,7 +50,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
         is_active: true,
         is_featured: false,
     });
-    const [images, setImages] = useState<string[]>(['']);
+    const [images, setImages] = useState<string[]>([]);
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
     const [colors, setColors] = useState<string[]>(['#000000']);
 
@@ -73,7 +74,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
                     is_active: product.is_active ?? true,
                     is_featured: product.is_featured ?? false,
                 });
-                setImages(product.images?.length ? product.images : ['']);
+                setImages(product.images || []);
                 setSelectedSizes(product.sizes || []);
                 setColors(product.colors?.length ? product.colors : ['#000000']);
             }
@@ -103,22 +104,6 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
         }
     };
 
-    const handleImageChange = (index: number, value: string) => {
-        const newImages = [...images];
-        newImages[index] = value;
-        setImages(newImages);
-    };
-
-    const addImageField = () => {
-        setImages([...images, '']);
-    };
-
-    const removeImageField = (index: number) => {
-        if (images.length > 1) {
-            const newImages = images.filter((_, i) => i !== index);
-            setImages(newImages);
-        }
-    };
 
     const toggleSize = (size: string) => {
         setSelectedSizes(prev =>
@@ -371,31 +356,12 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
                                     </div>
                                 </div>
                                 <div className={styles.inputGroupFull}>
-                                    <label>Product Images (URLs)</label>
-                                    <div className={styles.imageInputs}>
-                                        {images.map((image, index) => (
-                                            <div key={index} className={styles.imageInputRow}>
-                                                <input
-                                                    type="url"
-                                                    value={image}
-                                                    onChange={(e) => handleImageChange(index, e.target.value)}
-                                                    placeholder="https://example.com/image.jpg"
-                                                />
-                                                {images.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeImageField(index)}
-                                                        className={styles.removeBtn}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                        <button type="button" onClick={addImageField} className={styles.addFieldBtn}>
-                                            <Plus size={16} /> Add Image URL
-                                        </button>
-                                    </div>
+                                    <label>Product Images</label>
+                                    <ImageUpload 
+                                        images={images} 
+                                        onChange={setImages} 
+                                        maxImages={5} 
+                                    />
                                 </div>
                                 <div className={styles.inputGroupFull}>
                                     <label>Description</label>

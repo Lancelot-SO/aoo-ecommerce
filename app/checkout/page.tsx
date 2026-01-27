@@ -8,6 +8,7 @@ import { GHANA_REGIONS } from "@/constants/ghana";
 import { ChevronRight, CreditCard, Smartphone, Building, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import styles from "./checkout.module.css";
+import { usePaystackPayment } from "react-paystack";
 
 export default function CheckoutPage() {
     const { cart, cartTotal, clearCart } = useCart();
@@ -24,33 +25,48 @@ export default function CheckoutPage() {
 
     const [paymentMethod, setPaymentMethod] = useState("momo");
 
+    const subtotal = cartTotal;
+    const deliveryFee = 25;
+    const totalAmount = subtotal + deliveryFee;
+
+    const paystackConfig = {
+        reference: `AOSA-${new Date().getTime().toString()}`,
+        email: formData.email,
+        amount: Math.round(totalAmount * 100), // Paystack expects amount in pesewas
+        publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || "",
+        currency: "GHS",
+        metadata: {
+            custom_fields: [
+                {
+                    display_name: "Full Name",
+                    variable_name: "full_name",
+                    value: formData.fullName
+                },
+                {
+                    display_name: "Phone Number",
+                    variable_name: "phone_number",
+                    value: formData.phone
+                }
+            ]
+        }
+    };
+
+    const initializePayment = usePaystackPayment(paystackConfig);
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (cart.length === 0) {
-            alert("Your cart is empty");
-            return;
-        }
-
-        setLoading(true);
-
+    const createOrder = async (reference: string) => {
         try {
-            const orderNumber = `AOSA-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-            const subtotal = cartTotal;
-            const deliveryFee = 25;
-            const total = subtotal + deliveryFee;
-
             const orderData = {
-                order_number: orderNumber,
+                order_number: paystackConfig.reference,
                 customer_name: formData.fullName,
                 customer_email: formData.email,
                 customer_phone: formData.phone,
                 delivery_address: `${formData.address}, ${formData.region}`,
                 delivery_notes: formData.notes,
-                items: cart.map(item => ({
+                items: cart.map((item: any) => ({
                     product_id: item.id,
                     name: item.name,
                     price: item.price,
@@ -59,9 +75,10 @@ export default function CheckoutPage() {
                 })),
                 subtotal,
                 delivery_fee: deliveryFee,
-                total,
+                total: totalAmount,
                 payment_method: paymentMethod,
-                payment_status: 'pending',
+                payment_status: 'paid',
+                payment_reference: reference,
                 order_status: 'pending'
             };
 
@@ -72,13 +89,47 @@ export default function CheckoutPage() {
             if (error) throw error;
 
             clearCart();
-            router.push(`/checkout/success?order=${orderNumber}`);
+            router.push(`/checkout/success?order=${paystackConfig.reference}`);
         } catch (error: any) {
             console.error('Error creating order:', error.message);
-            alert(`Failed to place order: ${error.message}`);
+            alert(`Payment successful but failed to save order: ${error.message}. Please contact support with reference: ${reference}`);
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (cart.length === 0) {
+            alert("Your cart is empty");
+            return;
+        }
+
+        if (!paystackConfig.publicKey) {
+            alert("Payment system is not properly configured. Please try again later.");
+            return;
+        }
+
+        setLoading(true);
+
+        // Verify if basic email validation passes before opening Paystack
+        if (!formData.email.includes('@')) {
+            alert("Please provide a valid email address");
+            setLoading(false);
+            return;
+        }
+
+        initializePayment({
+            onSuccess: (response: any) => {
+                // handle payment success
+                createOrder(response.reference);
+            },
+            onClose: () => {
+                // handle payment cancellation
+                setLoading(false);
+            }
+        });
     };
 
     return (
@@ -167,7 +218,7 @@ export default function CheckoutPage() {
                         <div className={styles.card}>
                             <h2>Order Summary</h2>
                             <div className={styles.itemsList}>
-                                {cart.length > 0 ? cart.map(item => (
+                                {cart.length > 0 ? cart.map((item: any) => (
                                     <div key={`${item.id}-${item.size}`} className={styles.item}>
                                         <span>{item.name} {item.size ? `(${item.size})` : ""} x {item.quantity}</span>
                                         <span>GH₵ {(item.price * item.quantity).toLocaleString()}</span>

@@ -24,6 +24,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [added, setAdded] = useState(false);
+    const [activeImage, setActiveImage] = useState<string | null>(null);
 
     useEffect(() => {
         fetchProduct();
@@ -43,6 +44,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             // Set default color if colors are available
             if (data?.colors && data.colors.length > 0) {
                 setSelectedColor(data.colors[0]);
+            }
+            if (data?.images && data.images.length > 0) {
+                setActiveImage(data.images[0]);
             }
         } catch (error) {
             console.error('Error fetching product:', error);
@@ -98,8 +102,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
         );
     }
 
-    const mainImage = product.images?.[0] || "/products/blazer.png";
-    const galleryImages = product.images?.length > 0 ? product.images : [mainImage];
+    const fallbackImage = "/products/blazer.png";
+    const galleryImages = product.images?.length > 0 ? product.images : [fallbackImage];
+    const displayImage = activeImage || galleryImages[0] || fallbackImage;
 
     return (
         <main>
@@ -114,7 +119,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     <div className={styles.imageGallery}>
                         <div className={styles.mainImage}>
                             <Image
-                                src={mainImage}
+                                src={displayImage}
                                 alt={product.name}
                                 fill
                                 className={styles.img}
@@ -123,7 +128,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         </div>
                         <div className={styles.thumbnails}>
                             {galleryImages.map((img: string, i: number) => (
-                                <div key={i} className={styles.thumbnail}>
+                                <div 
+                                    key={i} 
+                                    className={`${styles.thumbnail} ${displayImage === img ? styles.thumbnailActive : ""}`}
+                                    onClick={() => setActiveImage(img)}
+                                >
                                     <Image src={img} alt={product.name} fill className={styles.img} />
                                 </div>
                             ))}

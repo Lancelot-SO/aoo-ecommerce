@@ -49,7 +49,7 @@
     border: 2px solid transparent;
 }
 
-.thumbnail:first-child {
+.thumbnailActive {
     border-color: var(--accent);
 }
 

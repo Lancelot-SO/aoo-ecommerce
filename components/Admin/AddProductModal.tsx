@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Upload, Save, Loader2, Plus, Trash2 } from "lucide-react";
+import { X, Save, Loader2, Plus, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import styles from "./AddProductModal.module.css";
+import ImageUpload from "./ImageUpload";
 
 interface AddProductModalProps {
     isOpen: boolean;
@@ -26,7 +27,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         description: "",
         weight: "",
     });
-    const [images, setImages] = useState<string[]>(['']);
+    const [images, setImages] = useState<string[]>([]);
     const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
     const [colors, setColors] = useState<string[]>(['#000000']);
 
@@ -52,22 +53,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         }));
     };
 
-    const handleImageChange = (index: number, value: string) => {
-        const newImages = [...images];
-        newImages[index] = value;
-        setImages(newImages);
-    };
-
-    const addImageField = () => {
-        setImages([...images, '']);
-    };
-
-    const removeImageField = (index: number) => {
-        if (images.length > 1) {
-            const newImages = images.filter((_, i) => i !== index);
-            setImages(newImages);
-        }
-    };
 
     const toggleSize = (size: string) => {
         setSelectedSizes(prev =>
@@ -129,18 +114,8 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
 
             console.log("Product data prepared:", productData);
 
-            // 2. Create a timeout promise (30 seconds)
-            const timeoutPromise = new Promise<{ error: { message: string } | null }>((_, reject) => {
-                setTimeout(() => reject(new Error("Request timed out after 30 seconds. Please check your internet connection.")), 30000);
-            });
-
-            // 3. Race against Supabase request
-            const supabasePromise = supabase.from('products').insert([productData]);
-
-            const { error } = await Promise.race([
-                supabasePromise,
-                timeoutPromise
-            ]) as any; // Cast because race types can be tricky with different return structures
+            // 2. Insert into Supabase directly
+            const { error } = await supabase.from('products').insert([productData]);
 
             if (error) {
                 console.error("Supabase error:", error);
@@ -163,7 +138,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                 description: "",
                 weight: "",
             });
-            setImages(['']);
+            setImages([]);
             setSelectedSizes([]);
             setColors(['#000000']);
 
@@ -326,31 +301,12 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                     </div>
                                 </div>
                                 <div className={styles.inputGroupFull}>
-                                    <label>Product Images (URLs)</label>
-                                    <div className={styles.imageInputs}>
-                                        {images.map((image, index) => (
-                                            <div key={index} className={styles.imageInputRow}>
-                                                <input
-                                                    type="url"
-                                                    value={image}
-                                                    onChange={(e) => handleImageChange(index, e.target.value)}
-                                                    placeholder="https://example.com/image.jpg"
-                                                />
-                                                {images.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeImageField(index)}
-                                                        className={styles.removeBtn}
-                                                    >
-                                                        <Trash2 size={16} />
-                                                    </button>
-                                                )}
-                                            </div>
-                                        ))}
-                                        <button type="button" onClick={addImageField} className={styles.addFieldBtn}>
-                                            <Plus size={16} /> Add Image URL
-                                        </button>
-                                    </div>
+                                    <label>Product Images</label>
+                                    <ImageUpload 
+                                        images={images} 
+                                        onChange={setImages} 
+                                        maxImages={5} 
+                                    />
                                 </div>
                                 <div className={styles.inputGroupFull}>
                                     <label>Description</label>
