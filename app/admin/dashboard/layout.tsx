@@ -34,7 +34,7 @@ export default function AdminLayout({
     return (
         <div style={{ display: 'flex' }}>
             <Sidebar />
-            <main style={{ flex: 1, marginLeft: '260px', minHeight: '100vh', background: '#f9f9f9' }}>
+            <main style={{ flex: 1, minHeight: '100vh', background: '#f9f9f9', position: 'relative' }}>
                 {children}
             </main>
         </div>

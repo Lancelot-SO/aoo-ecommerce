@@ -619,48 +619,116 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .statsRow {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-@media (max-width: 768px) {
     .container {
-        padding: 1rem;
+        padding: 5rem 1rem 2rem 1rem;
     }
 
     .header {
         flex-direction: column;
         align-items: stretch;
+        gap: 1.5rem;
     }
 
     .headerTools {
-        justify-content: flex-start;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
     }
 
     .searchWrapper {
         width: 100%;
     }
 
+    .filterWrapper {
+        width: 100%;
+    }
+
+    .filterBtn {
+        width: 100%;
+        justify-content: space-between;
+    }
+
     .statsRow {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .statsRow {
+        grid-template-columns: 1fr;
     }
 
     .statCard {
         padding: 1rem;
     }
 
-    .statValue {
-        font-size: 1.25rem;
+    /* Table to Card Transformation */
+    .table thead {
+        display: none;
     }
 
-    .tableCard {
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
         padding: 1rem;
-        overflow-x: auto;
+        background: #f9fafb;
+        position: relative;
     }
 
-    .table {
-        min-width: 900px;
+    .table td {
+        border: none;
+        padding: 0.6rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-align: left;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    /* Special handling for product cell */
+    .table td:first-child {
+        display: block;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.5rem;
+        padding-bottom: 1rem;
+    }
+
+    .table td:first-child::before {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .productCell {
+        justify-content: flex-start;
+    }
+
+    /* Position actions more naturally on mobile */
+    .table td:last-child {
+        border-top: 1px solid var(--border);
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        justify-content: center;
+    }
+
+    .table td:last-child::before {
+        display: none;
     }
 }

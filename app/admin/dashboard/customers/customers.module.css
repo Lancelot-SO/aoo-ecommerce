@@ -325,9 +325,97 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.modalSubmitBtn:hover {
     opacity: 0.9;
     transform: translateY(-1px);
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 5rem 1rem 2rem 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+
+    .headerTools {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .searchWrapper {
+        width: 100%;
+    }
+
+    .addBtn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+
+    /* Table to Card Transformation */
+    .table thead {
+        display: none;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
+
+    .table td {
+        border: none;
+        padding: 0.6rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-align: left;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    /* Special handling for user details cell */
+    .table td:first-child {
+        display: block;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.5rem;
+        padding-bottom: 1rem;
+        justify-content: flex-start;
+    }
+
+    .table td:first-child::before {
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .userCell {
+        justify-content: flex-start;
+    }
+
+    .mobileHideIcon {
+        display: none;
+    }
 }

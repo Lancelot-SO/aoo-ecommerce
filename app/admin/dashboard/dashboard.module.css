@@ -485,214 +485,94 @@
     color: var(--muted-foreground);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
+    .container {
+        padding: 5rem 1rem 2rem 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .headerTools {
+        flex-direction: column;
+        width: 100%;
+        gap: 1rem;
+        align-items: stretch;
+    }
+
+    .searchWrapper {
+        width: 100%;
+    }
+
+    .headerActions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .refreshBtn,
+    .secondaryBtn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .statsGrid {
+        grid-template-columns: 1fr;
+    }
 
     .topGrid,
     .mainGrid {
         grid-template-columns: 1fr;
     }
-}
 
-/* Date Filter Dropdown */
-.dateFilterWrapper {
-    position: relative;
-}
+    /* Table to Card Transformation */
+    .table thead {
+        display: none;
+    }
 
-.dateFilter {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: white;
-    border: 1px solid var(--border);
-    padding: 0.625rem 1rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
 
-.dateFilter:hover {
-    background: #f9fafb;
-    border-color: #d1d5db;
-}
+    .table tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
 
-.dateDropdown {
-    position: absolute;
-    top: calc(100% + 8px);
-    right: 0;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-    overflow: hidden;
-    min-width: 180px;
-    z-index: 100;
-}
+    .table td {
+        border: none;
+        padding: 0.5rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
 
-.dateOption {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: 0.875rem;
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    color: #374151;
-}
+    .table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-align: left;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
 
-.dateOption:hover {
-    background: #f3f4f6;
-}
-
-.dateOptionActive {
-    background: #f3f4f6;
-    color: var(--primary);
-    font-weight: 600;
-}
-
-/* Modal Styles */
-.modalOverlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 1rem;
-}
-
-.modal {
-    background: white;
-    border-radius: 16px;
-    width: 100%;
-    max-width: 500px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-}
-
-.modalHeader {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border);
-}
-
-.modalHeader h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-}
-
-.modalClose {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 8px;
-    color: #6b7280;
-    transition: all 0.2s ease;
-}
-
-.modalClose:hover {
-    background: #f3f4f6;
-    color: #111827;
-}
-
-.modalBody {
-    padding: 1.5rem;
-}
-
-.formGroup {
-    margin-bottom: 1.25rem;
-}
-
-.formGroup:last-child {
-    margin-bottom: 0;
-}
-
-.formGroup label {
-    display: block;
-    font-size: 0.875rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #374151;
-}
-
-.formGroup input,
-.formGroup select,
-.formGroup textarea {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.875rem;
-    transition: all 0.2s ease;
-    background: white;
-}
-
-.formGroup input:focus,
-.formGroup select:focus,
-.formGroup textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15);
-}
-
-.formGroup textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
-.formRow {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-}
-
-.modalFooter {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    padding: 1.25rem 1.5rem;
-    border-top: 1px solid var(--border);
-    background: #f9fafb;
-}
-
-.modalCancelBtn {
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    background: white;
-    border: 1px solid var(--border);
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.modalCancelBtn:hover {
-    background: #f3f4f6;
-}
-
-.modalSubmitBtn {
-    padding: 0.625rem 1.25rem;
-    border-radius: 8px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    background: var(--primary);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.modalSubmitBtn:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
+    .table td:first-child {
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: 1rem;
+    }
 }

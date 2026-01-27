@@ -35,6 +35,18 @@
     flex: 1;
 }
 
+.desktopNav {
+    display: flex;
+}
+
+.mobileNavLinks {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding: 2rem;
+    width: 100%;
+}
+
 .navLink {
     font-weight: 500;
     font-size: 0.95rem;
@@ -127,6 +139,61 @@
 
 .scrolled .actionBtn:hover {
     background: var(--muted);
+}
+
+.mobileDivider {
+    height: 1px;
+    background: var(--border);
+    margin: 1.5rem 0;
+    width: 100%;
+}
+
+.mobileUserSection {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 0 2rem;
+}
+
+.mobileUserHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mobileLogoutBtn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #ef4444;
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0.5rem 0;
+    transition: opacity 0.2s ease;
+}
+
+.mobileLogoutBtn:active {
+    opacity: 0.7;
+}
+
+.mobileLoginBtn {
+    display: block;
+    width: calc(100% - 4rem);
+    margin: 0 2rem;
+    text-align: center;
+    padding: 1rem;
+    background: var(--primary);
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.9rem;
+    transition: transform 0.2s ease;
+}
+
+.mobileLoginBtn:active {
+    transform: scale(0.98);
 }
 
 .cartBadge {
@@ -287,14 +354,41 @@
     color: var(--accent);
 }
 
+.backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 100;
+}
+
+.mobileDrawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 80%;
+    max-width: 300px;
+    height: 100vh;
+    background: white;
+    z-index: 101;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+}
+
 @media (max-width: 768px) {
-    .nav {
-        display: none;
+    .desktopNav {
+        display: none !important;
     }
 
     .mobileMenuBtn {
         display: block;
         cursor: pointer;
+        z-index: 1100;
+        position: relative;
     }
 
     .actions {

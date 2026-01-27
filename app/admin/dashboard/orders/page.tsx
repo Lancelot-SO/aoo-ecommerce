@@ -481,22 +481,22 @@ export default function OrdersPage() {
                                             transition={{ duration: 0.3 }}
                                             className={isSimulatedOrder ? styles.simulatedRow : ''}
                                         >
-                                            <td>
+                                            <td data-label="Order ID">
                                                 <span style={{ fontWeight: 700 }}>
                                                     #{order.order_number}
                                                     {isSimulatedOrder && <span className={styles.liveBadge}>LIVE</span>}
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td data-label="Customer">
                                                 <div className={styles.customerCell}>
                                                     <h4>{order.customer_name}</h4>
                                                     <p>{order.customer_email}</p>
                                                 </div>
                                             </td>
-                                            <td>{formatDate(order.created_at)}</td>
-                                            <td>{getItemCount(order.items)} Items</td>
-                                            <td style={{ fontWeight: 600 }}>GH₵ {order.total.toLocaleString()}</td>
-                                            <td>
+                                            <td data-label="Date">{formatDate(order.created_at)}</td>
+                                            <td data-label="Items">{getItemCount(order.items)} Items</td>
+                                            <td data-label="Total Amount" style={{ fontWeight: 600 }}>GH₵ {order.total.toLocaleString()}</td>
+                                            <td data-label="Status">
                                                 <motion.span
                                                     className={`${styles.statusBadge} ${getStatusClass(status)}`}
                                                     key={status}
@@ -506,7 +506,7 @@ export default function OrdersPage() {
                                                     {status}
                                                 </motion.span>
                                             </td>
-                                            <td>
+                                            <td data-label="Action">
                                                 <button className={styles.viewBtn}>
                                                     Details <ArrowUpRight size={14} />
                                                 </button>

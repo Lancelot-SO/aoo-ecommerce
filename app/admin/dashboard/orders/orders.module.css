@@ -494,3 +494,127 @@
 .simulatedRow {
     transition: background-color 0.3s ease;
 }
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 5rem 1rem 2rem 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+
+    .headerTools {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .searchWrapper {
+        width: 100%;
+    }
+
+    .tabs {
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        gap: 1.5rem;
+    }
+
+    .tab {
+        white-space: nowrap;
+    }
+
+    .simulationHeader {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .simulateBtn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .progressStages {
+        flex-direction: column;
+        gap: 1.5rem;
+        align-items: flex-start;
+        padding-left: 1rem;
+    }
+
+    .progressStages::before {
+        top: 20px;
+        bottom: 20px;
+        left: 27px;
+        width: 2px;
+        height: auto;
+    }
+
+    .progressStage {
+        flex-direction: row;
+        gap: 1rem;
+    }
+
+    /* Table to Card Transformation */
+    .table thead {
+        display: none;
+    }
+
+    .table,
+    .table tbody,
+    .table tr,
+    .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+        background: #f9fafb;
+    }
+
+    .table td {
+        border: none;
+        padding: 0.6rem 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-align: right;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-align: left;
+        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+    }
+
+    /* Special handling for order ID cell */
+    .table td:first-child {
+        display: block;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.75rem;
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    .table td:first-child::before {
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+
+    .customerCell {
+        text-align: right;
+        display: block;
+    }
+}

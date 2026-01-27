@@ -222,13 +222,13 @@ export default function CustomersPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td>
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                            <GraduationCap size={16} color="#6b7280" />
+                                    <td data-label="Class Year">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'inherit' }}>
+                                            <GraduationCap size={16} color="#6b7280" className={styles.mobileHideIcon} />
                                             {user.class_year || "N/A"}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Role">
                                         <span className={`${styles.roleBadge} ${user.role === 'Admin' ? styles.roleAdmin :
                                                 user.role === 'Alumni' ? styles.roleAlumni :
                                                     styles.roleStudent
@@ -236,10 +236,10 @@ export default function CustomersPage() {
                                             {user.role}
                                         </span>
                                     </td>
-                                    <td>{user.orders_count || 0} Orders</td>
-                                    <td style={{ fontWeight: 600 }}>GH₵ {user.total_spent || 0}</td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: 12 }}>
+                                    <td data-label="Orders">{user.orders_count || 0} Orders</td>
+                                    <td data-label="Total Spent" style={{ fontWeight: 600 }}>GH₵ {user.total_spent || 0}</td>
+                                    <td data-label="Actions">
+                                        <div style={{ display: 'flex', gap: 12, justifyContent: 'inherit' }}>
                                             <button 
                                                 className={styles.actionBtn} 
                                                 title="Edit User"

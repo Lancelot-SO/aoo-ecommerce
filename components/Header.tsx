@@ -44,8 +44,8 @@ export default function Header() {
                 <div className={styles.mobileMenuBtn} onClick={() => setIsMenuOpen(!isMenuOpen)}>
                     {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </div>
-
-                <nav className={`${styles.nav} ${isMenuOpen ? styles.navOpen : ""}`}>
+                {/* Desktop Nav */}
+                <nav className={`${styles.nav} ${styles.desktopNav}`}>
                     <Link href="/catalog" className={styles.navLink}>Shop</Link>
                     <Link href="/contact" className={styles.navLink}>Contact</Link>
                     <Link href="/about" className={styles.navLink}>Our Story</Link>
@@ -111,6 +111,78 @@ export default function Header() {
                     )}
                 </div>
             </div>
+
+            {/* Mobile Navigation Drawer */}
+            <AnimatePresence>
+                {isMenuOpen && (
+                    <>
+                        <motion.div 
+                            className={styles.backdrop}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setIsMenuOpen(false)}
+                        />
+                        <motion.nav 
+                            className={styles.mobileDrawer}
+                            initial={{ x: "-100%" }}
+                            animate={{ x: 0 }}
+                            exit={{ x: "-100%" }}
+                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                        >
+                            <div className={styles.mobileNavLinks}>
+                                {['Shop', 'Contact', 'Our Story'].map((text, i) => (
+                                    <motion.div
+                                        key={text}
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.1 + (i * 0.1) }}
+                                    >
+                                        <Link 
+                                            href={text === 'Shop' ? '/catalog' : text === 'Contact' ? '/contact' : '/about'} 
+                                            className={styles.navLink}
+                                            onClick={() => setIsMenuOpen(false)}
+                                        >
+                                            {text}
+                                        </Link>
+                                    </motion.div>
+                                ))}
+                                
+                                <div className={styles.mobileDivider} />
+                                
+                                {mounted && (
+                                    <motion.div
+                                        initial={{ x: -20, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: 0.4 }}
+                                    >
+                                        {user ? (
+                                            <div className={styles.mobileUserSection}>
+                                                <div className={styles.mobileUserHeader}>
+                                                    <div className={styles.userAvatar}>{userInitials}</div>
+                                                    <span className={styles.userEmail}>{user.email}</span>
+                                                </div>
+                                                <button onClick={() => { signOut(); setIsMenuOpen(false); }} className={styles.mobileLogoutBtn}>
+                                                    <LogOut size={18} />
+                                                    <span>Logout</span>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <Link 
+                                                href="/login" 
+                                                className={styles.mobileLoginBtn} 
+                                                onClick={() => setIsMenuOpen(false)}
+                                            >
+                                                Login / Signup
+                                            </Link>
+                                        )}
+                                    </motion.div>
+                                )}
+                            </div>
+                        </motion.nav>
+                    </>
+                )}
+            </AnimatePresence>
         </header>
     );
 }

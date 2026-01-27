@@ -98,30 +98,60 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         e.preventDefault();
         setLoading(true);
 
+        console.log("Starting product submission...");
+
         try {
+            // 1. Validate inputs
+            const price = parseFloat(formData.price);
+            const stock = parseInt(formData.stock_quantity);
+            const weight = formData.weight ? parseFloat(formData.weight) : null;
+            const salePrice = formData.sale_price ? parseFloat(formData.sale_price) : null;
+
+            if (isNaN(price)) throw new Error("Invalid Price: Please enter a valid number");
+            if (isNaN(stock)) throw new Error("Invalid Stock: Please enter a valid number");
+            if (formData.weight && weight !== null && isNaN(weight)) throw new Error("Invalid Weight: Please enter a valid number");
+            if (formData.sale_price && salePrice !== null && isNaN(salePrice)) throw new Error("Invalid Sale Price: Please enter a valid number");
+
             const productData = {
                 name: formData.name,
                 slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
                 sku: formData.sku,
-                price: parseFloat(formData.price),
-                sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,
-                stock_quantity: parseInt(formData.stock_quantity),
+                price: price,
+                sale_price: salePrice,
+                stock_quantity: stock,
                 category_id: formData.category_id || null,
                 description: formData.description,
-                weight: formData.weight ? parseFloat(formData.weight) : null,
+                weight: weight,
                 images: images.filter(img => img.trim() !== ''),
                 sizes: selectedSizes,
                 colors: colors.filter(c => c.trim() !== ''),
             };
 
-            const { error } = await supabase
-                .from('products')
-                .insert([productData]);
+            console.log("Product data prepared:", productData);
 
-            if (error) throw error;
+            // 2. Create a timeout promise (30 seconds)
+            const timeoutPromise = new Promise<{ error: { message: string } | null }>((_, reject) => {
+                setTimeout(() => reject(new Error("Request timed out after 30 seconds. Please check your internet connection.")), 30000);
+            });
 
+            // 3. Race against Supabase request
+            const supabasePromise = supabase.from('products').insert([productData]);
+
+            const { error } = await Promise.race([
+                supabasePromise,
+                timeoutPromise
+            ]) as any; // Cast because race types can be tricky with different return structures
+
+            if (error) {
+                console.error("Supabase error:", error);
+                throw error;
+            }
+
+            console.log("Supabase insert successful");
             onSuccess();
             onClose();
+            
+            // Reset form
             setFormData({
                 name: "",
                 slug: "",
@@ -136,10 +166,10 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
             setImages(['']);
             setSelectedSizes([]);
             setColors(['#000000']);
+
         } catch (error: any) {
             console.error('Error adding product:', error.message || error);
-            console.error('Error details:', error.details);
-            console.error('Error hint:', error.hint);
+            console.error('Full Error Object:', error);
             alert(`Failed to add product: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);

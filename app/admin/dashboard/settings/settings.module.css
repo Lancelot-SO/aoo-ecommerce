@@ -140,3 +140,71 @@
     border: none;
     cursor: pointer;
 }
+
+.dangerBtn:hover {
+    opacity: 0.9;
+}
+
+@media (max-width: 1024px) {
+    .container {
+        padding: 5rem 1rem 2rem 1rem;
+    }
+
+    .grid {
+        gap: 2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .sidebar {
+        position: sticky;
+        top: 90px;
+        background: #f9fafb;
+        z-index: 10;
+        margin: -1rem;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar nav {
+        flex-direction: row;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .sidebar nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .navBtn {
+        white-space: nowrap;
+        padding: 0.6rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .content {
+        padding: 1.5rem 1rem;
+        border-radius: 8px;
+    }
+
+    .section {
+        margin-bottom: 2rem;
+    }
+
+    .sectionTitle {
+        font-size: 1rem;
+    }
+
+    .saveBtn,
+    .dangerBtn {
+        width: 100%;
+        padding: 0.75rem 1rem;
+    }
+}

@@ -10,13 +10,19 @@ import {
     Users,
     Settings,
     LogOut,
-    ChevronLeft
+    ChevronLeft,
+    Menu,
+    X
 } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import styles from "./Sidebar.module.css";
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const router = useRouter();
 
     const menuItems = [
         { label: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/admin/dashboard" },
@@ -26,8 +32,6 @@ export default function Sidebar() {
         { label: "Settings", icon: <Settings size={20} />, href: "/admin/dashboard/settings" },
     ];
 
-    const router = useRouter();
-
     const handleLogout = async () => {
         try {
             const { error } = await supabase.auth.signOut();
@@ -35,37 +39,67 @@ export default function Sidebar() {
             router.push("/catalog");
         } catch (error) {
             console.error("Error logging out:", error);
-            // Fallback redirect even if error occurs
             router.push("/catalog");
         }
     };
 
+    const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
+
     return (
-        <aside className={styles.sidebar}>
-            <div className={styles.logo}>
-                <Image src="/logo.png" alt="AOSA Logo" width={40} height={40} />
-                <span>Admin OAA</span>
-            </div>
+        <>
+            {/* Mobile Toggle Button */}
+            <button className={styles.mobileToggle} onClick={toggleMobile}>
+                {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
 
-            <nav className={styles.nav}>
-                {menuItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`${styles.navItem} ${pathname === item.href ? styles.active : ""}`}
-                    >
-                        {item.icon}
-                        {item.label}
-                    </Link>
-                ))}
-            </nav>
+            {/* Backdrop */}
+            <AnimatePresence>
+                {isMobileOpen && (
+                    <motion.div 
+                        className={styles.backdrop}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
 
-            <div className={styles.footer}>
-                <button className={styles.logoutBtn} onClick={handleLogout}>
-                    <LogOut size={20} />
-                    Logout
-                </button>
-            </div>
-        </aside>
+            <AnimatePresence>
+                <motion.aside 
+                    className={`${styles.sidebar} ${isMobileOpen ? styles.sidebarOpen : ""}`}
+                    initial={{ x: "-100%" }}
+                    animate={{ x: isMobileOpen ? 0 : "-100%" }}
+                    exit={{ x: "-100%" }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                >
+                    <div className={styles.logo}>
+                        <Image src="/logo.png" alt="AOSA Logo" width={40} height={40} />
+                        <span>Admin OAA</span>
+                    </div>
+
+                    <nav className={styles.nav}>
+                        {menuItems.map((item) => (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`${styles.navItem} ${pathname === item.href ? styles.active : ""}`}
+                                onClick={() => setIsMobileOpen(false)}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </Link>
+                        ))}
+                    </nav>
+
+                    <div className={styles.footer}>
+                        <button className={styles.logoutBtn} onClick={handleLogout}>
+                            <LogOut size={20} />
+                            <span>Logout</span>
+                        </button>
+                    </div>
+                </motion.aside>
+            </AnimatePresence>
+        </>
     );
 }

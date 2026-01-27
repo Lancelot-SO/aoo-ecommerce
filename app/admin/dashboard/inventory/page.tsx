@@ -373,7 +373,7 @@ export default function InventoryPage() {
                         ) : (
                             filteredInventory.map((item) => (
                                 <tr key={item.id} className={!item.is_active ? styles.inactiveRow : ''}>
-                                    <td>
+                                    <td data-label="Product Details">
                                         <div className={styles.productCell} onClick={() => handleViewDetails(item)}>
                                             <div className={styles.productImg}>
                                                 {item.images?.[0] && <img src={item.images[0]} alt={item.name} />}
@@ -384,14 +384,14 @@ export default function InventoryPage() {
                                             </div>
                                         </div>
                                     </td>
-                                    <td><code>{item.sku || 'N/A'}</code></td>
-                                    <td>{item.categories?.name || 'Uncategorized'}</td>
-                                    <td>
+                                    <td data-label="SKU"><code>{item.sku || 'N/A'}</code></td>
+                                    <td data-label="Category">{item.categories?.name || 'Uncategorized'}</td>
+                                    <td data-label="Stock Level">
                                         <span className={`${styles.stockBadge} ${getStockBadgeClass(item)}`}>
                                             {item.stock_quantity} {getStockLabel(item)}
                                         </span>
                                     </td>
-                                    <td style={{ fontWeight: 600 }}>
+                                    <td data-label="Price" style={{ fontWeight: 600 }}>
                                         {item.sale_price ? (
                                             <div className={styles.priceCol}>
                                                 <span className={styles.salePrice}>GH₵ {item.sale_price}</span>
@@ -401,7 +401,7 @@ export default function InventoryPage() {
                                             `GH₵ ${item.price}`
                                         )}
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         <span className={`${styles.statusBadge} ${item.is_active ? styles.activeBadge : styles.inactiveBadge}`}>
                                             {item.is_active ? 'Active' : 'Inactive'}
                                         </span>

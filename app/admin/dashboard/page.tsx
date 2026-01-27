@@ -363,11 +363,11 @@ export default function AdminDashboard() {
                                 <tbody>
                                     {recentOrders.length > 0 ? recentOrders.map((order) => (
                                         <tr key={order.id}>
-                                            <td>#{order.order_number}</td>
-                                            <td>{order.customer_name}</td>
-                                            <td>{new Date(order.created_at).toLocaleDateString()}</td>
-                                            <td style={{ fontWeight: 600 }}>GH₵ {order.total}</td>
-                                            <td>
+                                            <td data-label="Order ID">#{order.order_number}</td>
+                                            <td data-label="Customer">{order.customer_name}</td>
+                                            <td data-label="Date">{new Date(order.created_at).toLocaleDateString()}</td>
+                                            <td data-label="Amount" style={{ fontWeight: 600 }}>GH₵ {order.total}</td>
+                                            <td data-label="Status">
                                                 <span className={`${styles.statusBadge} ${order.payment_status === 'paid' ? styles.statusPaid :
                                                     order.payment_status === 'shipped' ? styles.statusShipped :
                                                         styles.statusPending
