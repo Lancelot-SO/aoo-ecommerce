@@ -34,7 +34,23 @@ export default function AdminLayout({
     return (
         <div style={{ display: 'flex' }}>
             <Sidebar />
-            <main style={{ flex: 1, minHeight: '100vh', background: '#f9f9f9', position: 'relative' }}>
+            <main style={{ 
+                flex: 1, 
+                minHeight: '100vh', 
+                background: '#f9f9f9', 
+                position: 'relative',
+                transition: 'padding-left 0.3s ease'
+            }} className="admin-main">
+                <style jsx>{`
+                    .admin-main {
+                        padding-left: 0;
+                    }
+                    @media (min-width: 1025px) {
+                        .admin-main {
+                            padding-left: 260px;
+                        }
+                    }
+                `}</style>
                 {children}
             </main>
         </div>

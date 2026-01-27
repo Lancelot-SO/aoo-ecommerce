@@ -14,7 +14,7 @@ import {
     Menu,
     X
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import styles from "./Sidebar.module.css";
@@ -22,7 +22,20 @@ import styles from "./Sidebar.module.css";
 export default function Sidebar() {
     const pathname = usePathname();
     const [isMobileOpen, setIsMobileOpen] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
     const router = useRouter();
+
+    useEffect(() => {
+        const checkDesktop = () => {
+            setIsDesktop(window.innerWidth > 1024);
+            if (window.innerWidth > 1024) {
+                setIsMobileOpen(false);
+            }
+        };
+        checkDesktop();
+        window.addEventListener('resize', checkDesktop);
+        return () => window.removeEventListener('resize', checkDesktop);
+    }, []);
 
     const menuItems = [
         { label: "Dashboard", icon: <LayoutDashboard size={20} />, href: "/admin/dashboard" },
@@ -48,9 +61,11 @@ export default function Sidebar() {
     return (
         <>
             {/* Mobile Toggle Button */}
-            <button className={styles.mobileToggle} onClick={toggleMobile}>
-                {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
+            {!isDesktop && (
+                <button className={styles.mobileToggle} onClick={toggleMobile}>
+                    {isMobileOpen ? <X size={24} /> : <Menu size={24} />}
+                </button>
+            )}
 
             {/* Backdrop */}
             <AnimatePresence>
@@ -68,9 +83,8 @@ export default function Sidebar() {
             <AnimatePresence>
                 <motion.aside 
                     className={`${styles.sidebar} ${isMobileOpen ? styles.sidebarOpen : ""}`}
-                    initial={{ x: "-100%" }}
-                    animate={{ x: isMobileOpen ? 0 : "-100%" }}
-                    exit={{ x: "-100%" }}
+                    initial={false}
+                    animate={{ x: (isDesktop || isMobileOpen) ? 0 : "-100%" }}
                     transition={{ type: "spring", damping: 25, stiffness: 200 }}
                 >
                     <div className={styles.logo}>

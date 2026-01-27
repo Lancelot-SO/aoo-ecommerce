@@ -114,3 +114,11 @@
         padding-top: 5rem;
     }
 }
+
+@media (min-width: 1025px) {
+
+    .mobileToggle,
+    .backdrop {
+        display: none !important;
+    }
+}
