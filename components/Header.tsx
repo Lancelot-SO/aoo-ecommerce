@@ -98,7 +98,13 @@ export default function Header() {
                                             <span className={styles.userEmail}>{user.email}</span>
                                         </div>
                                         <div className={styles.dropdownDivider} />
-                                        <button onClick={signOut} className={styles.dropdownItem}>
+                                        <button 
+                                            onClick={() => {
+                                                signOut();
+                                                setIsUserDropdownOpen(false);
+                                            }} 
+                                            className={styles.dropdownItem}
+                                        >
                                             <LogOut size={16} />
                                             <span>Logout</span>
                                         </button>

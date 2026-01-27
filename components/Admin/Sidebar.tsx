@@ -17,6 +17,7 @@ import {
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 import styles from "./Sidebar.module.css";
 
 export default function Sidebar() {
@@ -24,6 +25,7 @@ export default function Sidebar() {
     const [isMobileOpen, setIsMobileOpen] = useState(false);
     const [isDesktop, setIsDesktop] = useState(false);
     const router = useRouter();
+    const { signOut } = useAuth();
 
     useEffect(() => {
         const checkDesktop = () => {
@@ -46,14 +48,7 @@ export default function Sidebar() {
     ];
 
     const handleLogout = async () => {
-        try {
-            const { error } = await supabase.auth.signOut();
-            if (error) throw error;
-            router.push("/catalog");
-        } catch (error) {
-            console.error("Error logging out:", error);
-            router.push("/catalog");
-        }
+        await signOut();
     };
 
     const toggleMobile = () => setIsMobileOpen(!isMobileOpen);
