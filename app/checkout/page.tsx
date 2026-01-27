@@ -8,12 +8,28 @@ import { GHANA_REGIONS } from "@/constants/ghana";
 import { ChevronRight, CreditCard, Smartphone, Building, Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import styles from "./checkout.module.css";
-import { usePaystackPayment } from "react-paystack";
+import dynamic from "next/dynamic";
+import { useEffect } from "react";
+
+const PaymentButton = dynamic(() => import("@/components/PaymentButton"), { 
+    ssr: false,
+    loading: () => (
+        <button type="button" className={styles.payBtn} disabled>
+            Loading Payment System...
+        </button>
+    )
+});
 
 export default function CheckoutPage() {
     const { cart, cartTotal, clearCart } = useCart();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const [formData, setFormData] = useState({
         fullName: "",
         email: "",
@@ -51,7 +67,7 @@ export default function CheckoutPage() {
         }
     };
 
-    const initializePayment = usePaystackPayment(paystackConfig);
+    // Removed initializePayment from here to move it into child component
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -100,36 +116,7 @@ export default function CheckoutPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (cart.length === 0) {
-            alert("Your cart is empty");
-            return;
-        }
-
-        if (!paystackConfig.publicKey) {
-            alert("Payment system is not properly configured. Please try again later.");
-            return;
-        }
-
-        setLoading(true);
-
-        // Verify if basic email validation passes before opening Paystack
-        if (!formData.email.includes('@')) {
-            alert("Please provide a valid email address");
-            setLoading(false);
-            return;
-        }
-
-        initializePayment({
-            onSuccess: (response: any) => {
-                // handle payment success
-                createOrder(response.reference);
-            },
-            onClose: () => {
-                // handle payment cancellation
-                setLoading(false);
-            }
-        });
+        // The sub-component handles the button click now
     };
 
     return (
@@ -240,10 +227,23 @@ export default function CheckoutPage() {
                                 <span>Total</span>
                                 <span>GH₵ {(cartTotal + 25).toLocaleString()}</span>
                             </div>
-
-                            <button type="submit" className={styles.payBtn} disabled={loading || cart.length === 0}>
-                                {loading ? <><Loader2 className={styles.spin} size={20} /> Processing...</> : <>Pay Now <ChevronRight size={20} /></>}
-                            </button>
+                            <div className={styles.divider}></div>
+                            
+                            {mounted ? (
+                                <PaymentButton 
+                                    config={paystackConfig}
+                                    cart={cart}
+                                    loading={loading}
+                                    setLoading={setLoading}
+                                    styles={styles}
+                                    onSuccess={(response: any) => createOrder(response.reference)}
+                                    onClose={() => setLoading(false)}
+                                />
+                            ) : (
+                                <button type="button" className={styles.payBtn} disabled>
+                                    Initialising Payment...
+                                </button>
+                            )}
 
                             <p className={styles.legal}>
                                 By placing this order, you agree to our Terms of Service & Privacy Policy.
