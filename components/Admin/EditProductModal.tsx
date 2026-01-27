@@ -130,6 +130,34 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
         }
     };
 
+    const generateUniqueSlug = async (baseSlug: string, currentProductId: string) => {
+        let slug = baseSlug;
+        let counter = 1;
+        let unique = false;
+
+        while (!unique) {
+            const { data, error } = await supabase
+                .from('products')
+                .select('slug')
+                .eq('slug', slug)
+                .neq('id', currentProductId)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error checking slug uniqueness:", error);
+                return slug;
+            }
+
+            if (!data) {
+                unique = true;
+            } else {
+                slug = `${baseSlug}-${counter}`;
+                counter++;
+            }
+        }
+        return slug;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!product) return;
@@ -137,9 +165,12 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
         setLoading(true);
 
         try {
+            const baseSlug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-');
+            const uniqueSlug = await generateUniqueSlug(baseSlug, product.id);
+
             const productData = {
                 name: formData.name,
-                slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
+                slug: uniqueSlug,
                 sku: formData.sku,
                 price: parseFloat(formData.price),
                 sale_price: formData.sale_price ? parseFloat(formData.sale_price) : null,

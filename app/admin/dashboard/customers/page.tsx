@@ -9,10 +9,12 @@ import {
     MoreHorizontal,
     GraduationCap,
     Trash2,
-    Edit2
+    Edit2,
+    Download
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { exportToExcel, exportToPDF } from "@/lib/exportUtils";
 import styles from "./customers.module.css";
 
 export default function CustomersPage() {
@@ -51,6 +53,37 @@ export default function CustomersPage() {
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (user.class_year && user.class_year.includes(searchQuery))
     );
+
+    const handleExport = (type: 'excel' | 'pdf') => {
+        if (customers.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        if (type === 'excel') {
+            const exportData = customers.map(user => ({
+                Name: user.name,
+                Email: user.email,
+                Role: user.role,
+                Class_Year: user.class_year || 'N/A',
+                Orders_Count: user.orders_count || 0,
+                Total_Spent: user.total_spent || 0,
+                Joined_At: new Date(user.created_at).toLocaleDateString()
+            }));
+            exportToExcel(exportData, `users_report_${new Date().getTime()}`);
+        } else {
+            const headers = ['Name', 'Email', 'Role', 'Class Year', 'Orders', 'Spent'];
+            const data = customers.map(user => [
+                user.name,
+                user.email,
+                user.role,
+                user.class_year || 'N/A',
+                user.orders_count || 0,
+                `GH₵ ${user.total_spent || 0}`
+            ]);
+            exportToPDF(headers, data, `users_report_${new Date().getTime()}`, 'Users/Customers Report');
+        }
+    };
 
     const handleSaveUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -180,6 +213,17 @@ export default function CustomersPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
+                    <button 
+                        className={styles.addBtn}
+                        onClick={() => {
+                            const choice = window.confirm("Export as Excel? (Cancel for PDF)");
+                            handleExport(choice ? 'excel' : 'pdf');
+                        }}
+                        style={{ background: '#4b5563' }}
+                    >
+                        <Download size={18} />
+                        Export
+                    </button>
                     <button className={styles.addBtn} onClick={openAddModal}>
                         <UserPlus size={18} />
                         Add User

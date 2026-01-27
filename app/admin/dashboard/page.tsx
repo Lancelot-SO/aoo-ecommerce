@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./dashboard.module.css";
 import { supabase } from "@/lib/supabase";
+import { exportToExcel, exportToPDF } from "@/lib/exportUtils";
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -35,6 +36,7 @@ export default function AdminDashboard() {
         { label: "Total Customers", value: "0", icon: <Users size={22} />, trend: "0%", color: "#000000" },
     ]);
     const [recentOrders, setRecentOrders] = useState<any[]>([]);
+    const [allOrders, setAllOrders] = useState<any[]>([]);
     const [topProductsData, setTopProductsData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const dateFilterRef = useRef<HTMLDivElement>(null);
@@ -52,28 +54,40 @@ export default function AdminDashboard() {
                 .from('products')
                 .select('*', { count: 'exact', head: true });
 
-            // Fetch Orders
-            const { data: ordersData, error: ordersError } = await supabase
+            // Fetch Order Stats & Revenue efficiently
+            const { data: revenueData, error: revenueError } = await supabase
                 .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false });
+                .select('total');
 
-            if (ordersError) throw ordersError;
+            if (revenueError) throw revenueError;
 
             // Calculate Revenue
-            const totalRevenue = ordersData?.reduce((acc, order) => acc + parseFloat(order.total), 0) || 0;
+            const totalRevenue = revenueData?.reduce((acc, order) => acc + parseFloat(order.total), 0) || 0;
+            const orderCount = revenueData?.length || 0;
 
-            // Unique Customers
-            const uniqueCustomers = new Set(ordersData?.map(o => o.customer_email)).size;
+            // Fetch Customers Count
+            const { count: customerCount } = await supabase
+                .from('profiles')
+                .select('*', { count: 'exact', head: true });
 
             setStats([
                 { label: "Total Revenue", value: `GH₵ ${totalRevenue.toLocaleString()}`, icon: <DollarSign size={22} />, trend: "0%", color: "#d4af37" },
-                { label: "Total Orders", value: ordersData?.length.toString() || "0", icon: <ShoppingBag size={22} />, trend: "0%", color: "#000000" },
+                { label: "Total Orders", value: orderCount.toString(), icon: <ShoppingBag size={22} />, trend: "0%", color: "#000000" },
                 { label: "Total Products", value: productCount?.toString() || "0", icon: <Package size={22} />, trend: "0%", color: "#000000" },
-                { label: "Total Customers", value: uniqueCustomers.toString(), icon: <Users size={22} />, trend: "0%", color: "#000000" },
+                { label: "Total Customers", value: (customerCount || 0).toString(), icon: <Users size={22} />, trend: "0%", color: "#000000" },
             ]);
 
-            setRecentOrders(ordersData?.slice(0, 5) || []);
+            // Fetch only recent orders for the UI
+            const { data: recentOrdersData } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            setRecentOrders(recentOrdersData || []);
+            // For the export, we still might want all orders, but let's only fetch them on demand if possible.
+            // For now, let's keep allOrders updated but potentially with fewer fields if needed.
+            setAllOrders(revenueData || []); 
 
             // Basic Top Products logic (placeholder for now)
             // In a real app, you'd aggregate from order items
@@ -129,8 +143,31 @@ export default function AdminDashboard() {
                 router.push("/admin/dashboard/inventory");
                 break;
             case "export-report":
-                // Trigger export functionality
-                alert("Generating sales report... This will download as PDF.");
+                if (allOrders.length === 0) {
+                    alert("No data to export");
+                    return;
+                }
+                const exportType = window.confirm("Export as Excel? (Cancel for PDF)") ? 'excel' : 'pdf';
+                if (exportType === 'excel') {
+                    const data = allOrders.map(o => ({
+                        Order_ID: o.order_number,
+                        Customer: o.customer_name,
+                        Total: o.total,
+                        Status: o.order_status,
+                        Date: new Date(o.created_at).toLocaleDateString()
+                    }));
+                    exportToExcel(data, `sales_report_${new Date().getTime()}`);
+                } else {
+                    const headers = ['Order ID', 'Customer', 'Total', 'Status', 'Date'];
+                    const data = allOrders.map(o => [
+                        o.order_number,
+                        o.customer_name,
+                        `GH₵ ${o.total}`,
+                        o.order_status,
+                        new Date(o.created_at).toLocaleDateString()
+                    ]);
+                    exportToPDF(headers, data, `sales_report_${new Date().getTime()}`, 'Sales Report Overview');
+                }
                 break;
             case "manage-users":
                 router.push("/admin/dashboard/customers");

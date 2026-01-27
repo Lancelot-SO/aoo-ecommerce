@@ -23,28 +23,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  const [lastCheckedId, setLastCheckedId] = useState<string | null>(null);
   const router = useRouter();
 
   const checkUserRole = async (userId: string) => {
+    if (lastCheckedId === userId && (isAdmin || role)) return;
+
     try {
       const { data, error } = await supabase
         .from("admin_users")
         .select("role")
         .eq("id", userId)
         .eq("is_active", true)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== "PGRST116") {
+      if (error) {
         console.error("Error fetching user role:", error);
-      }
-
-      if (data) {
+        // On error, default to non-admin
+        setIsAdmin(false);
+        setRole(null);
+      } else if (data) {
         setIsAdmin(true);
         setRole(data.role);
       } else {
         setIsAdmin(false);
         setRole(null);
       }
+      setLastCheckedId(userId);
     } catch (error) {
       console.error("Error checking role:", error);
       setIsAdmin(false);

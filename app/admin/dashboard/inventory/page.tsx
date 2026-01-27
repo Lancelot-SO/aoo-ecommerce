@@ -17,7 +17,8 @@ import {
     ChevronDown,
     CheckCircle2,
     XCircle,
-    AlertCircle
+    AlertCircle,
+    Download
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./inventory.module.css";
@@ -27,6 +28,7 @@ import ProductDetailsModal from "@/components/Admin/ProductDetailsModal";
 import StockAdjustmentModal from "@/components/Admin/StockAdjustmentModal";
 import DeleteConfirmModal from "@/components/Admin/DeleteConfirmModal";
 import { supabase } from "@/lib/supabase";
+import { exportToExcel, exportToPDF } from "@/lib/exportUtils";
 
 interface Product {
     id: string;
@@ -207,6 +209,37 @@ export default function InventoryPage() {
         outOfStock: inventory.filter(p => p.stock_quantity === 0).length
     };
 
+    const handleExport = (type: 'excel' | 'pdf') => {
+        if (inventory.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        if (type === 'excel') {
+            const exportData = inventory.map(item => ({
+                Name: item.name,
+                SKU: item.sku || 'N/A',
+                Category: item.categories?.name || 'Uncategorized',
+                Price: item.price,
+                Sale_Price: item.sale_price || 'N/A',
+                Stock: item.stock_quantity,
+                Status: item.is_active ? 'Active' : 'Inactive'
+            }));
+            exportToExcel(exportData, `inventory_report_${new Date().getTime()}`);
+        } else {
+            const headers = ['Name', 'SKU', 'Category', 'Price', 'Stock', 'Status'];
+            const data = inventory.map(item => [
+                item.name,
+                item.sku || 'N/A',
+                item.categories?.name || 'Uncategorized',
+                `GH₵ ${item.price}`,
+                item.stock_quantity,
+                item.is_active ? 'Active' : 'Inactive'
+            ]);
+            exportToPDF(headers, data, `inventory_report_${new Date().getTime()}`, 'Inventory Status Report');
+        }
+    };
+
     const containerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -269,6 +302,18 @@ export default function InventoryPage() {
                                 ))}
                             </div>
                         )}
+                    </div>
+                    <div className={styles.filterWrapper}>
+                        <button
+                            className={styles.filterBtn}
+                            onClick={() => {
+                                const choice = window.confirm("Export as Excel? (Cancel for PDF)");
+                                handleExport(choice ? 'excel' : 'pdf');
+                            }}
+                        >
+                            <Download size={18} />
+                            Export
+                        </button>
                     </div>
                     <button
                         className={styles.refreshBtn}

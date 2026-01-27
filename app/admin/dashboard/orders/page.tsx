@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { exportToExcel, exportToPDF } from "@/lib/exportUtils";
 import styles from "./orders.module.css";
 
 interface OrderItem {
@@ -72,22 +73,46 @@ export default function OrdersPage() {
         timeRemaining: 0
     });
     const [recentUpdate, setRecentUpdate] = useState<string | null>(null);
+    const [page, setPage] = useState(0);
+    const pageRef = useRef(0);
+    const [hasMore, setHasMore] = useState(true);
+    const PAGE_SIZE = 20;
 
     const simulationTimerRef = useRef<NodeJS.Timeout | null>(null);
     const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch orders
-    const fetchOrders = useCallback(async () => {
+    const fetchOrders = useCallback(async (isLoadMore = false) => {
         try {
-            setLoading(true);
+            if (!isLoadMore) {
+                setLoading(true);
+                setPage(0);
+                pageRef.current = 0;
+            }
             setError(null);
+
+            const currentPage = isLoadMore ? pageRef.current + 1 : 0;
+            const start = currentPage * PAGE_SIZE;
+            const end = start + PAGE_SIZE - 1;
+
             const { data, error: fetchError } = await supabase
                 .from('orders')
                 .select('*')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .range(start, end);
 
             if (fetchError) throw fetchError;
-            setOrders(data || []);
+
+            if (data) {
+                if (isLoadMore) {
+                    setOrders(prev => [...prev, ...data]);
+                    setPage(currentPage);
+                    pageRef.current = currentPage;
+                } else {
+                    setOrders(data);
+                }
+                setHasMore(data.length === PAGE_SIZE);
+            }
         } catch (err: any) {
             console.error('Error fetching orders:', err);
             setError(err.message || 'Failed to fetch orders');
@@ -98,7 +123,21 @@ export default function OrdersPage() {
 
     // Setup real-time subscription
     useEffect(() => {
-        fetchOrders();
+        // Only fetch on mount
+        const initialFetch = async () => {
+            const { data, error: fetchError } = await supabase
+                .from('orders')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .range(0, PAGE_SIZE - 1);
+
+            if (!fetchError && data) {
+                setOrders(data);
+                setHasMore(data.length === PAGE_SIZE);
+            }
+            setLoading(false);
+        };
+        initialFetch();
 
         // Subscribe to real-time changes
         const channel = supabase
@@ -322,6 +361,37 @@ export default function OrdersPage() {
         return matchesTab && matchesSearch;
     });
 
+    const handleExport = (type: 'excel' | 'pdf') => {
+        if (orders.length === 0) {
+            alert("No data to export");
+            return;
+        }
+
+        if (type === 'excel') {
+            const exportData = orders.map(order => ({
+                Order_Number: order.order_number,
+                Customer_Name: order.customer_name,
+                Customer_Email: order.customer_email,
+                Customer_Phone: order.customer_phone,
+                Date: new Date(order.created_at).toLocaleDateString(),
+                Items: order.items?.length || 0,
+                Total: order.total,
+                Status: getDisplayStatus(order)
+            }));
+            exportToExcel(exportData, `orders_report_${new Date().getTime()}`);
+        } else {
+            const headers = ['Order #', 'Customer', 'Date', 'Total', 'Status'];
+            const data = orders.map(order => [
+                order.order_number,
+                order.customer_name,
+                new Date(order.created_at).toLocaleDateString(),
+                `GH₵ ${order.total.toLocaleString()}`,
+                getDisplayStatus(order)
+            ]);
+            exportToPDF(headers, data, `orders_report_${new Date().getTime()}`, 'Orders Status Report');
+        }
+    };
+
     const tabs = ["All Orders", "Processing", "Shipped", "Delivered", "Cancelled"];
 
     const containerVariants = {
@@ -409,11 +479,17 @@ export default function OrdersPage() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <button className={styles.filterBtn} onClick={fetchOrders}>
+                    <button className={styles.filterBtn} onClick={() => fetchOrders(false)}>
                         <RefreshCw size={18} />
                         Refresh
                     </button>
-                    <button className={styles.exportBtn}>
+                    <button 
+                        className={styles.exportBtn}
+                        onClick={() => {
+                            const choice = window.confirm("Export as Excel? (Cancel for PDF)");
+                            handleExport(choice ? 'excel' : 'pdf');
+                        }}
+                    >
                         <Download size={18} />
                         Export
                     </button>
@@ -442,7 +518,7 @@ export default function OrdersPage() {
                     <div className={styles.errorState}>
                         <AlertCircle size={32} />
                         <p>{error}</p>
-                        <button onClick={fetchOrders} className={styles.retryBtn}>Try Again</button>
+                        <button onClick={() => fetchOrders(false)} className={styles.retryBtn}>Try Again</button>
                     </div>
                 ) : filteredOrders.length === 0 ? (
                     <div className={styles.emptyState}>
@@ -517,6 +593,18 @@ export default function OrdersPage() {
                             </AnimatePresence>
                         </tbody>
                     </table>
+                )}
+
+                {hasMore && !loading && filteredOrders.length >= PAGE_SIZE && (
+                    <div style={{ display: 'flex', justifyContent: 'center', padding: '1.5rem', borderTop: '1px solid #f3f4f6' }}>
+                        <button 
+                            onClick={() => fetchOrders(true)} 
+                            className={styles.viewBtn}
+                            style={{ padding: '0.6rem 2rem' }}
+                        >
+                            Load More Orders
+                        </button>
+                    </div>
                 )}
             </motion.div>
         </motion.div>

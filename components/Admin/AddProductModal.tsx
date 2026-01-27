@@ -79,6 +79,36 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         }
     };
 
+    const generateUniqueSlug = async (baseSlug: string) => {
+        let slug = baseSlug;
+        let counter = 1;
+        let unique = false;
+
+        while (!unique) {
+            const { data, error } = await supabase
+                .from('products')
+                .select('slug')
+                .eq('slug', slug)
+                .maybeSingle();
+
+            if (error) {
+                console.error("Error checking slug uniqueness:", error);
+                // If there's an error, we'll just try with the current slug and let the database handle it,
+                // or we could throw. For now, let's assume it's unique if we can't check it, 
+                // but the DB constraint will still catch it if it's not.
+                return slug;
+            }
+
+            if (!data) {
+                unique = true;
+            } else {
+                slug = `${baseSlug}-${counter}`;
+                counter++;
+            }
+        }
+        return slug;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
@@ -97,9 +127,12 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
             if (formData.weight && weight !== null && isNaN(weight)) throw new Error("Invalid Weight: Please enter a valid number");
             if (formData.sale_price && salePrice !== null && isNaN(salePrice)) throw new Error("Invalid Sale Price: Please enter a valid number");
 
+            const baseSlug = formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-');
+            const uniqueSlug = await generateUniqueSlug(baseSlug);
+
             const productData = {
                 name: formData.name,
-                slug: formData.slug || formData.name.toLowerCase().replace(/\s+/g, '-'),
+                slug: uniqueSlug,
                 sku: formData.sku,
                 price: price,
                 sale_price: salePrice,
