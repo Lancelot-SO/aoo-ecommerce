@@ -119,11 +119,23 @@ function SuccessContent() {
         doc.save(`Invoice-${order.order_number}.pdf`);
     };
 
-    if (loading) {
+    if (loading && !order) {
         return (
             <div className={styles.loadingWrapper}>
                 <Loader2 className={styles.spin} size={40} />
                 <p>Confirming your order details...</p>
+            </div>
+        );
+    }
+
+    if (!order && !loading) {
+        return (
+            <div className={styles.successCard}>
+                <h1>Order Not Found</h1>
+                <p>We couldn't retrieve your order details. If you just paid, please wait a moment and refresh.</p>
+                <Link href="/catalog" className={styles.continueBtn}>
+                    Back to Shop
+                </Link>
             </div>
         );
     }
@@ -142,11 +154,11 @@ function SuccessContent() {
             <div className={styles.details}>
                 <div className={styles.detailRow}>
                     <span>Order Date</span>
-                    <strong>{order ? new Date(order.created_at).toLocaleDateString() : 'Today'}</strong>
+                    <strong>{order?.created_at ? new Date(order.created_at).toLocaleDateString() : 'Today'}</strong>
                 </div>
                 <div className={styles.detailRow}>
                     <span>Total Amount</span>
-                    <strong>GH₵ {order?.total?.toLocaleString() || '0.00'}</strong>
+                    <strong>GH₵ {Number(order?.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>
                 </div>
             </div>
 

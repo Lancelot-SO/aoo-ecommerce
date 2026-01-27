@@ -26,15 +26,31 @@ export default function ImageUpload({ images, onChange, maxImages = 5 }: ImageUp
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
+        // 1. Get signature from our API
+        const signResponse = await fetch("/api/upload/sign", { method: "POST" });
+        if (!signResponse.ok) throw new Error("Failed to get upload signature");
+        const signData = await signResponse.json();
+
+        // 2. Upload directly to Cloudinary
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("api_key", signData.api_key);
+        formData.append("timestamp", signData.timestamp.toString());
+        formData.append("signature", signData.signature);
+        formData.append("folder", "aoo-ecommerce");
 
-        const response = await fetch("/api/upload", {
+        const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${signData.cloud_name}/image/upload`;
+        
+        const response = await fetch(cloudinaryUrl, {
           method: "POST",
           body: formData,
         });
 
-        if (!response.ok) throw new Error("Upload failed");
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("Cloudinary error detail:", errorData);
+          throw new Error("Cloudinary upload failed");
+        }
 
         const data = await response.json();
         return data.secure_url;
