@@ -42,7 +42,7 @@ export default function CheckoutPage() {
     const [paymentMethod, setPaymentMethod] = useState("momo");
 
     const subtotal = cartTotal;
-    const deliveryFee = 25;
+    const deliveryFee = 0;
     const totalAmount = subtotal + deliveryFee;
 
     const paystackConfig = {
@@ -221,11 +221,11 @@ export default function CheckoutPage() {
                             </div>
                             <div className={styles.summaryRow}>
                                 <span>Delivery Fee</span>
-                                <span>GH₵ 25.00</span>
+                                <span>GH₵ {deliveryFee.toFixed(2)}</span>
                             </div>
                             <div className={`${styles.summaryRow} ${styles.totalRow}`}>
                                 <span>Total</span>
-                                <span>GH₵ {(cartTotal + 25).toLocaleString()}</span>
+                                <span>GH₵ {totalAmount.toLocaleString()}</span>
                             </div>
                             <div className={styles.divider}></div>
                             
