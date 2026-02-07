@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Menu, X, Search, ChevronDown, LogOut, User as UserIcon } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, ChevronDown, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
@@ -15,7 +15,7 @@ export default function Header() {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { cartCount } = useCart();
-    const { user, signOut } = useAuth();
+    const { user, signOut, isAdmin } = useAuth();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -98,6 +98,19 @@ export default function Header() {
                                             <span className={styles.userEmail}>{user.email}</span>
                                         </div>
                                         <div className={styles.dropdownDivider} />
+                                        {isAdmin && (
+                                            <>
+                                                <Link 
+                                                    href="/admin/dashboard" 
+                                                    className={styles.dropdownItem}
+                                                    onClick={() => setIsUserDropdownOpen(false)}
+                                                >
+                                                    <LayoutDashboard size={16} />
+                                                    <span>Dashboard</span>
+                                                </Link>
+                                                <div className={styles.dropdownDivider} />
+                                            </>
+                                        )}
                                         <button 
                                             onClick={() => {
                                                 signOut();
@@ -168,6 +181,16 @@ export default function Header() {
                                                     <div className={styles.userAvatar}>{userInitials}</div>
                                                     <span className={styles.userEmail}>{user.email}</span>
                                                 </div>
+                                                {isAdmin && (
+                                                    <Link 
+                                                        href="/admin/dashboard" 
+                                                        className={styles.mobileDashboardBtn}
+                                                        onClick={() => setIsMenuOpen(false)}
+                                                    >
+                                                        <LayoutDashboard size={18} />
+                                                        <span>Dashboard</span>
+                                                    </Link>
+                                                )}
                                                 <button onClick={() => { signOut(); setIsMenuOpen(false); }} className={styles.mobileLogoutBtn}>
                                                     <LogOut size={18} />
                                                     <span>Logout</span>

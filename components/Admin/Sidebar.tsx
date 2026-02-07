@@ -12,7 +12,8 @@ import {
     LogOut,
     ChevronLeft,
     Menu,
-    X
+    X,
+    ExternalLink
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -102,6 +103,10 @@ export default function Sidebar() {
                     </nav>
 
                     <div className={styles.footer}>
+                        <Link href="/" className={styles.viewWebsiteBtn}>
+                            <ExternalLink size={20} />
+                            <span>View Website</span>
+                        </Link>
                         <button className={styles.logoutBtn} onClick={handleLogout}>
                             <LogOut size={20} />
                             <span>Logout</span>
