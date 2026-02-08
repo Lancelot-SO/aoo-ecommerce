@@ -155,6 +155,7 @@ export default function Catalog() {
                                 price={product.price}
                                 image={product.images?.[0] || "/products/blazer.png"}
                                 category={product.categories?.name}
+                                stock_quantity={product.stock_quantity}
                             />
                         ))
                     ) : (

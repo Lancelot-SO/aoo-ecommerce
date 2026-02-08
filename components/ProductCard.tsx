@@ -13,6 +13,7 @@ interface ProductCardProps {
     price: number;
     image: string;
     category: string;
+    stock_quantity?: number;
 }
 
 // Validate if a URL is a proper image URL
@@ -42,13 +43,15 @@ function isValidImageUrl(url: string): boolean {
 
 const FALLBACK_IMAGE = "/products/blazer.png";
 
-export default function ProductCard({ id, name, price, image, category }: ProductCardProps) {
+export default function ProductCard({ id, name, price, image, category, stock_quantity = 0 }: ProductCardProps) {
     const { addToCart } = useCart();
     const [imgSrc, setImgSrc] = useState(() =>
         isValidImageUrl(image) ? image : FALLBACK_IMAGE
     );
     const [hasError, setHasError] = useState(false);
     const [added, setAdded] = useState(false);
+
+    const isSoldOut = stock_quantity <= 0;
 
     const handleImageError = () => {
         if (!hasError) {
@@ -61,6 +64,8 @@ export default function ProductCard({ id, name, price, image, category }: Produc
         e.preventDefault();
         e.stopPropagation();
         
+        if (isSoldOut) return;
+
         addToCart({
             id,
             name,
@@ -75,7 +80,7 @@ export default function ProductCard({ id, name, price, image, category }: Produc
     };
 
     return (
-        <div className={`${styles.card} premium-card`}>
+        <div className={`${styles.card} premium-card ${isSoldOut ? styles.soldOutCard : ''}`}>
             <div className={styles.imageContainer}>
                 <Link href={`/product/${id}`} className={styles.imageLink}>
                     <Image
@@ -85,14 +90,18 @@ export default function ProductCard({ id, name, price, image, category }: Produc
                         className={styles.image}
                         onError={handleImageError}
                     />
+                    {isSoldOut && (
+                        <div className={styles.soldOutBadge}>Sold Out</div>
+                    )}
                 </Link>
                 <div className={styles.actions}>
                     <button 
-                        className={`${styles.actionBtn} ${added ? styles.added : ""}`}
+                        className={`${styles.actionBtn} ${added ? styles.added : ""} ${isSoldOut ? styles.disabledBtn : ""}`}
                         onClick={handleAddToCart}
-                        title={added ? "Added to cart!" : "Add to cart"}
+                        disabled={isSoldOut}
+                        title={isSoldOut ? "Sold Out" : (added ? "Added to cart!" : "Add to cart")}
                     >
-                        {added ? <Check size={18} /> : <ShoppingCart size={18} />}
+                        {added ? <Check size={18} /> : (isSoldOut ? <ShoppingCart size={18} opacity={0.5} /> : <ShoppingCart size={18} />)}
                     </button>
                     <Link href={`/product/${id}`} className={styles.actionBtn}>
                         <Eye size={18} />
@@ -102,11 +111,17 @@ export default function ProductCard({ id, name, price, image, category }: Produc
             <div className={styles.content}>
                 <div className={styles.meta}>
                     <span className={styles.category}>{category}</span>
+                    {stock_quantity > 0 && stock_quantity <= 10 && (
+                        <span className={styles.lowStock}>Only {stock_quantity} left</span>
+                    )}
                 </div>
                 <Link href={`/product/${id}`}>
                     <h3 className={styles.name}>{name}</h3>
                 </Link>
-                <p className={styles.price}>GH₵ {price.toLocaleString()}</p>
+                <div className={styles.priceRow}>
+                    <p className={styles.price}>GH₵ {price.toLocaleString()}</p>
+                    {isSoldOut && <span className={styles.soldOutText}>Sold Out</span>}
+                </div>
             </div>
         </div>
     );

@@ -104,7 +104,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     const fallbackImage = "/products/blazer.png";
     const galleryImages = product.images?.length > 0 ? product.images : [fallbackImage];
-    const displayImage = activeImage || galleryImages[0] || fallbackImage;
+const displayImage = activeImage || galleryImages[0] || fallbackImage;
+    const isSoldOut = (product.stock_quantity ?? 0) <= 0;
+    const isLowStock = !isSoldOut && product.stock_quantity <= 10;
 
     return (
         <main>
@@ -122,9 +124,12 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                 src={displayImage}
                                 alt={product.name}
                                 fill
-                                className={styles.img}
+                                className={`${styles.img} ${isSoldOut ? styles.soldOutImage : ""}`}
                                 priority
                             />
+                            {isSoldOut && (
+                                <div className={styles.soldOutBadge}>Sold Out</div>
+                            )}
                         </div>
                         <div className={styles.thumbnails}>
                             {galleryImages.map((img: string, i: number) => (
@@ -140,6 +145,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                     </div>
 
                     <div className={styles.details}>
+                        {isLowStock && (
+                            <div className={styles.lowStockLabel}>Only {product.stock_quantity} remaining</div>
+                        )}
                         <span className={styles.category}>{product.categories?.name || 'Commemorative'}</span>
                         <h1 className={styles.title}>{product.name}</h1>
                         <p className={styles.price}>GH₵ {product.price.toLocaleString()}</p>
@@ -179,6 +187,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                                             key={size}
                                             className={`${styles.sizeBtn} ${selectedSize === size ? styles.sizeActive : ""}`}
                                             onClick={() => setSelectedSize(size)}
+                                            disabled={isSoldOut}
                                         >
                                             {size}
                                         </button>
@@ -189,23 +198,33 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                             <div className={styles.optionGroup}>
                                 <span className={styles.optionLabel}>Quantity</span>
                                 <div className={styles.quantitySelector}>
-                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
+                                    <button 
+                                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                                        disabled={isSoldOut}
+                                    >-</button>
                                     <span>{quantity}</span>
-                                    <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                                    <button 
+                                        onClick={() => setQuantity(Math.min(product.stock_quantity || 1, quantity + 1))}
+                                        disabled={isSoldOut || quantity >= (product.stock_quantity || 0)}
+                                    >+</button>
                                 </div>
                             </div>
                         </div>
 
                         <div className={styles.actions}>
                             <button
-                                className={`${styles.addToCart} ${added ? styles.added : ""}`}
+                                className={`${styles.addToCart} ${added ? styles.added : ""} ${isSoldOut ? styles.soldOutBtn : ""}`}
                                 onClick={handleAddToCart}
-                                disabled={added}
+                                disabled={added || isSoldOut}
                             >
-                                {added ? <><Check size={20} /> Added!</> : <><ShoppingCart size={20} /> Add to Cart</>}
+                                {isSoldOut ? 'Sold Out' : (added ? <><Check size={20} /> Added!</> : <><ShoppingCart size={20} /> Add to Cart</>)}
                             </button>
-                            <button className={styles.buyNow} onClick={handleBuyNow}>
-                                Buy It Now
+                            <button 
+                                className={`${styles.buyNow} ${isSoldOut ? styles.soldOutBtn : ""}`} 
+                                onClick={handleBuyNow}
+                                disabled={isSoldOut}
+                            >
+                                {isSoldOut ? 'Out of Stock' : 'Buy It Now'}
                             </button>
                         </div>
 

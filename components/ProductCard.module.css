@@ -101,3 +101,54 @@
         bottom: 1rem;
     }
 }
+
+.soldOutBadge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #000;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    z-index: 3;
+}
+
+.lowStock {
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #d97706;
+    margin-left: 0.5rem;
+    text-transform: uppercase;
+}
+
+.priceRow {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+}
+
+.soldOutText {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    text-decoration: line-through;
+}
+
+.disabledBtn {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.disabledBtn:hover {
+    background: white;
+    color: var(--primary);
+    border-color: var(--border);
+}
+
+.soldOutCard .image {
+    filter: grayscale(0.8);
+    opacity: 0.7;
+}

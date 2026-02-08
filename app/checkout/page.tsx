@@ -98,17 +98,19 @@ export default function CheckoutPage() {
                 order_status: 'pending'
             };
 
-            const { error } = await supabase
-                .from('orders')
-                .insert([orderData]);
+            const { error: apiError } = await fetch('/api/orders', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(orderData)
+            }).then(res => res.json());
 
-            if (error) throw error;
+            if (apiError) throw new Error(apiError);
 
             clearCart();
             router.push(`/checkout/success?order=${paystackConfig.reference}`);
         } catch (error: any) {
             console.error('Error creating order:', error.message);
-            alert(`Payment successful but failed to save order: ${error.message}. Please contact support with reference: ${reference}`);
+            alert(`Payment successful but failed to process order: ${error.message}. Please contact support with reference: ${reference}`);
         } finally {
             setLoading(false);
         }
