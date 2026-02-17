@@ -1,21 +1,74 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 import {
     User,
     Bell,
     Shield,
-    CreditCard,
     Store,
-    Mail,
-    Globe,
-    Lock
+    Save,
+    Loader2
 } from "lucide-react";
 import { motion } from "framer-motion";
 import styles from "./settings.module.css";
 
 export default function SettingsPage() {
     const [activeSection, setActiveSection] = useState("Profile");
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(true);
+    const [notificationEmail, setNotificationEmail] = useState("");
+    const [message, setMessage] = useState({ type: "", text: "" });
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            setFetching(true);
+            const { data, error } = await supabase
+                .from('site_settings')
+                .select('*')
+                .eq('key', 'admin_notification_email')
+                .single();
+
+            if (data) {
+                setNotificationEmail(data.value);
+            } else if (error && error.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+                console.error('Error fetching settings:', error);
+            }
+        } catch (error) {
+            console.error('Failed to fetch settings:', error);
+        } finally {
+            setFetching(false);
+        }
+    };
+
+    const handleSaveNotificationEmail = async () => {
+        try {
+            setLoading(true);
+            setMessage({ type: "", text: "" });
+            
+            const { error } = await supabase
+                .from('site_settings')
+                .upsert({ 
+                    key: 'admin_notification_email', 
+                    value: notificationEmail 
+                }, { onConflict: 'key' });
+
+            if (!error) {
+                setMessage({ type: "success", text: "Notification email updated successfully!" });
+            } else {
+                console.error('Error updating setting:', error);
+                setMessage({ type: "error", text: error.message || "Failed to update email." });
+            }
+        } catch (error) {
+            setMessage({ type: "error", text: "Something went wrong. Please try again." });
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const sections = [
         { id: "Profile", icon: <User size={20} /> },
@@ -100,6 +153,60 @@ export default function SettingsPage() {
                                 </div>
                             </div>
                             <button className={styles.saveBtn}>Update Store</button>
+                        </motion.div>
+                    )}
+
+                    {activeSection === "Notifications" && (
+                        <motion.div
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                        >
+                            <div className={styles.section}>
+                                <h2 className={styles.sectionTitle}>Email Notifications</h2>
+                                <p className={styles.sectionDesc}>
+                                    Set the email address that will receive order confirmations, low stock alerts, and system notifications.
+                                </p>
+                                
+                                <div className={styles.formGroup}>
+                                    <label>Notification Recipient Email</label>
+                                    <div className={styles.inputWithIcon}>
+                                        <input 
+                                            type="email" 
+                                            value={notificationEmail} 
+                                            onChange={(e) => setNotificationEmail(e.target.value)}
+                                            placeholder="e.g. admin@example.com"
+                                            disabled={fetching || loading}
+                                        />
+                                        {fetching && <Loader2 className={styles.spinner} size={18} />}
+                                    </div>
+                                    <span className={styles.helpText}>
+                                        This email is used for all automated system alerts.
+                                    </span>
+                                </div>
+
+                                {message.text && (
+                                    <div className={`${styles.alert} ${message.type === 'success' ? styles.success : styles.error}`}>
+                                        {message.text}
+                                    </div>
+                                )}
+                            </div>
+                            <button 
+                                className={styles.saveBtn} 
+                                onClick={handleSaveNotificationEmail}
+                                disabled={loading || fetching}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className={styles.spin} size={18} />
+                                        Saving...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save size={18} />
+                                        Save Notification Settings
+                                    </>
+                                )}
+                            </button>
                         </motion.div>
                     )}
 

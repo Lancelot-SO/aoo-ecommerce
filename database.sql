@@ -108,4 +108,24 @@ CREATE POLICY "Allow admins full access to everything" ON categories FOR ALL USI
   EXISTS (SELECT 1 FROM admin_users WHERE id = auth.uid() AND is_active = true)
 );
 
--- Repeat for other tables... (simplified for script)
+-- Site Settings Table
+CREATE TABLE site_settings (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  key TEXT UNIQUE NOT NULL,
+  value TEXT NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Insert default admin notification email
+INSERT INTO site_settings (key, value) VALUES ('admin_notification_email', 'fsowah001@gmail.com');
+
+-- Enable RLS
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+-- Admin Policies for Site Settings
+CREATE POLICY "Allow admins full access to site_settings" ON site_settings FOR ALL USING (
+  EXISTS (SELECT 1 FROM admin_users WHERE id = auth.uid() AND is_active = true)
+);
+
+-- Allow anyone to read settings (needed for server-side notifications using anon client)
+CREATE POLICY "Allow public read access to site_settings" ON site_settings FOR SELECT USING (true);

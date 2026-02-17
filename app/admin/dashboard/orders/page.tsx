@@ -20,6 +20,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { exportToExcel, exportToPDF } from "@/lib/exportUtils";
+import OrderDetailsModal from "@/components/Admin/OrderDetailsModal";
 import styles from "./orders.module.css";
 
 interface OrderItem {
@@ -37,8 +38,12 @@ interface Order {
     customer_email: string;
     customer_phone: string;
     delivery_address: string;
+    delivery_notes?: string;
     items: OrderItem[];
+    subtotal: number;
+    delivery_fee: number;
     total: number;
+    payment_method: string;
     payment_status: string;
     order_status: string;
     created_at: string;
@@ -77,6 +82,9 @@ export default function OrdersPage() {
     const pageRef = useRef(0);
     const [hasMore, setHasMore] = useState(true);
     const PAGE_SIZE = 20;
+
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
     const simulationTimerRef = useRef<NodeJS.Timeout | null>(null);
     const countdownRef = useRef<NodeJS.Timeout | null>(null);
@@ -582,11 +590,17 @@ export default function OrdersPage() {
                                                     {status}
                                                 </motion.span>
                                             </td>
-                                            <td data-label="Action">
-                                                <button className={styles.viewBtn}>
-                                                    Details <ArrowUpRight size={14} />
-                                                </button>
-                                            </td>
+                                             <td data-label="Action">
+                                                 <button 
+                                                    className={styles.viewBtn}
+                                                    onClick={() => {
+                                                        setSelectedOrder(order);
+                                                        setIsDetailsModalOpen(true);
+                                                    }}
+                                                 >
+                                                     Details <ArrowUpRight size={14} />
+                                                 </button>
+                                             </td>
                                         </motion.tr>
                                     );
                                 })}
@@ -607,6 +621,15 @@ export default function OrdersPage() {
                     </div>
                 )}
             </motion.div>
+
+            <OrderDetailsModal 
+                isOpen={isDetailsModalOpen}
+                onClose={() => {
+                    setIsDetailsModalOpen(false);
+                    setSelectedOrder(null);
+                }}
+                order={selectedOrder}
+            />
         </motion.div>
     );
 }

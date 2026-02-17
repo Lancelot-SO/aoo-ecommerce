@@ -66,6 +66,15 @@ export async function POST(req: NextRequest) {
         // 3. Send Notifications (Low Stock or Out of Stock)
         if (lowStockNotifications.length > 0 && process.env.RESEND_API_KEY) {
             try {
+                // Fetch admin email from settings table, fallback to env or default
+                const { data: settingsData } = await supabase
+                    .from('site_settings')
+                    .select('value')
+                    .eq('key', 'admin_notification_email')
+                    .single();
+                
+                const recipientEmail = settingsData?.value || process.env.ADMIN_EMAIL || 'admin@example.com';
+
                 const outOfStockItems = lowStockNotifications.filter(item => item.stock === 0);
                 const itemsLowStock = lowStockNotifications.filter(item => item.stock > 0);
                 
@@ -80,7 +89,7 @@ export async function POST(req: NextRequest) {
 
                 await resend.emails.send({
                     from: 'aoo-ecommerce <notifications@resend.dev>',
-                    to: ADMIN_EMAIL,
+                    to: recipientEmail,
                     subject: subject,
                     html: `
                         <h2>Inventory Notification</h2>
