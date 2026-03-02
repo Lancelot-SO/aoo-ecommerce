@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import styles from "./contact.module.css";
 
@@ -143,6 +144,8 @@ export default function ContactPage() {
                     </div>
                 </div>
             </section>
+
+            <Footer />
         </main>
     );
 }

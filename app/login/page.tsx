@@ -25,9 +25,35 @@ export default function LoginPage() {
                 password,
             });
 
-            if (error) throw error;
+            if (error) {
+                if (error.message === "Invalid login credentials") {
+                    alert("Incorrect email or password. Please try again or create an account.");
+                } else {
+                    alert(error.message);
+                }
+                setLoading(false);
+                return;
+            }
 
             if (user) {
+                // Ensure a profile exists for this user (auto-create with 'Customer' role if missing)
+                const { data: existingProfile } = await supabase
+                    .from("profiles")
+                    .select("id")
+                    .eq("id", user.id)
+                    .maybeSingle();
+
+                if (!existingProfile) {
+                    await supabase.from("profiles").insert([
+                        {
+                            id: user.id,
+                            email: user.email,
+                            name: user.email?.split("@")[0] || "User",
+                            role: "Customer",
+                        },
+                    ]);
+                }
+
                 // Check if user is admin
                 const { data: adminData } = await supabase
                     .from("admin_users")
@@ -42,12 +68,12 @@ export default function LoginPage() {
                 if (adminData) {
                     router.push("/admin/dashboard");
                 } else {
-                    router.push("/catalog");
+                    router.push("/account");
                 }
             }
         } catch (error: any) {
             console.error("Login error:", error.message);
-            alert(error.message || "Invalid credentials");
+            alert("Something went wrong. Please try again.");
         } finally {
             setLoading(false);
         }

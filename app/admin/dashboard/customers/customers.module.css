@@ -169,6 +169,11 @@
     color: #1e40af;
 }
 
+.roleCustomer {
+    background: #fef3c7;
+    color: #92400e;
+}
+
 .actionBtn {
     color: var(--muted-foreground);
     background: none;

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import ProductCard from "@/components/ProductCard";
-import { Filter, ChevronDown, Search } from "lucide-react";
+import { Filter, Search } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import styles from "./catalog.module.css";
 
@@ -14,6 +15,9 @@ export default function Catalog() {
     const [categories, setCategories] = useState<any[]>([]);
     const [activeCategory, setActiveCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
+    const [sortOption, setSortOption] = useState("Newest");
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -22,7 +26,7 @@ export default function Catalog() {
 
     useEffect(() => {
         let isMounted = true;
-        
+
         async function loadProducts() {
             try {
                 setLoading(true);
@@ -39,7 +43,31 @@ export default function Catalog() {
                     query = query.ilike('name', `%${searchQuery}%`);
                 }
 
-                const { data, error } = await query.order('created_at', { ascending: false });
+                // Price filters applied at database level
+                if (minPrice !== "") {
+                    const min = parseFloat(minPrice);
+                    if (!isNaN(min)) {
+                        query = query.gte('price', min);
+                    }
+                }
+
+                if (maxPrice !== "") {
+                    const max = parseFloat(maxPrice);
+                    if (!isNaN(max)) {
+                        query = query.lte('price', max);
+                    }
+                }
+
+                // Sort at database level
+                if (sortOption === "Price: Low to High") {
+                    query = query.order('price', { ascending: true });
+                } else if (sortOption === "Price: High to Low") {
+                    query = query.order('price', { ascending: false });
+                } else {
+                    query = query.order('created_at', { ascending: false });
+                }
+
+                const { data, error } = await query;
 
                 if (error) throw error;
                 if (isMounted) {
@@ -47,7 +75,6 @@ export default function Catalog() {
                 }
             } catch (error: any) {
                 if (isMounted) {
-                    // Ignore abort errors which are expected when navigating quickly
                     if (error.name === 'AbortError' || error.message?.includes('aborted')) {
                         return;
                     }
@@ -70,7 +97,7 @@ export default function Catalog() {
         return () => {
             isMounted = false;
         };
-    }, [activeCategory, searchQuery]);
+    }, [activeCategory, searchQuery, sortOption, minPrice, maxPrice]);
 
     async function fetchInitialData() {
         try {
@@ -82,6 +109,12 @@ export default function Catalog() {
         }
     }
 
+    const clearPriceFilter = () => {
+        setMinPrice("");
+        setMaxPrice("");
+    };
+
+    const hasPriceFilter = minPrice !== "" || maxPrice !== "";
 
     return (
         <main>
@@ -130,11 +163,49 @@ export default function Catalog() {
 
                         <div className={styles.sortWrapper}>
                             <Filter size={18} />
-                            <select className={styles.sortSelect}>
+                            <select
+                                className={styles.sortSelect}
+                                value={sortOption}
+                                onChange={(e) => setSortOption(e.target.value)}
+                            >
                                 {SORT_OPTIONS.map(opt => (
                                     <option key={opt}>{opt}</option>
                                 ))}
                             </select>
+                        </div>
+                    </div>
+
+                    {/* Price Filter */}
+                    <div className={styles.priceFilter}>
+                        <span className={styles.filterLabel}>Price Range (GH₵)</span>
+                        <div className={styles.priceInputs}>
+                            <input
+                                type="number"
+                                placeholder="Min"
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(e.target.value)}
+                                className={styles.priceInput}
+                                min="0"
+                                step="0.01"
+                            />
+                            <span className={styles.priceSeparator}>—</span>
+                            <input
+                                type="number"
+                                placeholder="Max"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value)}
+                                className={styles.priceInput}
+                                min="0"
+                                step="0.01"
+                            />
+                            {hasPriceFilter && (
+                                <button
+                                    className={styles.clearPriceBtn}
+                                    onClick={clearPriceFilter}
+                                >
+                                    Clear
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -166,9 +237,7 @@ export default function Catalog() {
                 </div>
             </div>
 
-            <footer className={styles.simpleFooter}>
-                <p>&copy; 2027 Achimota Old Students Association</p>
-            </footer>
+            <Footer />
         </main>
     );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import ProductCard from "./ProductCard";
 import styles from "./FeaturedProducts.module.css";
@@ -77,7 +78,7 @@ export default function FeaturedProducts() {
                         <span className="section-title">EXCLUSIVE SELECTION</span>
                         <h2 className="section-heading">Featured Centenary Items</h2>
                     </div>
-                    <button className={styles.viewAll}>View All Store</button>
+                    <Link href="/catalog" className={styles.viewAll}>View All Store</Link>
                 </div>
 
                 <div className={styles.grid}>

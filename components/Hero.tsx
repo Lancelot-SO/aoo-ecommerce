@@ -19,7 +19,6 @@ export default function Hero() {
                     <span className={styles.subtitle}>ESTABLISHED 1927</span>
                     <h1 className={styles.title}>
                         <span className={styles.upper}>A Century of</span>
-                        <br />
                         <span className="premium-gold-text">Achimota Excellence</span>
                     </h1>
                     <p className={styles.description}>

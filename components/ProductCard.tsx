@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Eye, Check } from "lucide-react";
+import { ShoppingCart, Eye, Check, Heart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import styles from "./ProductCard.module.css";
 
 interface ProductCardProps {
@@ -45,6 +46,8 @@ const FALLBACK_IMAGE = "/products/blazer.png";
 
 export default function ProductCard({ id, name, price, image, category, stock_quantity = 0 }: ProductCardProps) {
     const { addToCart } = useCart();
+    const { toggleWishlist, isInWishlist } = useWishlist();
+    const isWishlisted = isInWishlist(id);
     const [imgSrc, setImgSrc] = useState(() =>
         isValidImageUrl(image) ? image : FALLBACK_IMAGE
     );
@@ -102,6 +105,17 @@ export default function ProductCard({ id, name, price, image, category, stock_qu
                         title={isSoldOut ? "Sold Out" : (added ? "Added to cart!" : "Add to cart")}
                     >
                         {added ? <Check size={18} /> : (isSoldOut ? <ShoppingCart size={18} opacity={0.5} /> : <ShoppingCart size={18} />)}
+                    </button>
+                    <button 
+                        className={`${styles.actionBtn} ${isWishlisted ? styles.activeWishlist : ""}`}
+                        onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            toggleWishlist(id);
+                        }}
+                        title={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                    >
+                        <Heart size={18} fill={isWishlisted ? "currentColor" : "none"} />
                     </button>
                     <Link href={`/product/${id}`} className={styles.actionBtn}>
                         <Eye size={18} />

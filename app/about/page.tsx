@@ -1,4 +1,5 @@
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import styles from "./about.module.css";
 
 export default function AboutPage() {
@@ -22,7 +23,7 @@ export default function AboutPage() {
                         </p>
                         <p>
                             For 100 years, Achimota has been a beacon of academic excellence, leadership, and national unity.
-                            The motto, "Ut Omnes Unum Sint" (That All May Be One), reflected the founders' vision of a school
+                            The motto, &quot;Ut Omnes Unum Sint&quot; (That All May Be One), reflected the founders&apos; vision of a school
                             that would train the whole person - body, soul, and spirit.
                         </p>
                         <p>
@@ -44,6 +45,9 @@ export default function AboutPage() {
                     </div>
                 </div>
             </div>
+
+            <Footer />
         </main>
     );
 }
+

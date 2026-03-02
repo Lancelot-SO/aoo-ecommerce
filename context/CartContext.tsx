@@ -43,8 +43,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
     // Save cart to localStorage on changes
     useEffect(() => {
-        localStorage.setItem("aosa-cart", JSON.stringify(cart));
-    }, [cart]);
+        if (mounted) {
+            localStorage.setItem("aosa-cart", JSON.stringify(cart));
+        }
+    }, [cart, mounted]);
 
     const addToCart = (item: CartItem) => {
         setCart(prev => {

@@ -24,6 +24,7 @@
 .container {
     position: relative;
     z-index: 2;
+    padding-top: 20px;
 }
 
 .content {
@@ -41,8 +42,8 @@
 
 .title {
     font-size: clamp(3rem, 6vw, 5rem);
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
+    line-height: 1.15;
+    margin-bottom: 1.75rem;
     font-weight: 600;
 }
 

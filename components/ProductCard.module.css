@@ -61,6 +61,17 @@
     border-color: var(--primary);
 }
 
+.activeWishlist {
+    color: #ef4444 !important;
+    border-color: #fee2e2 !important;
+}
+
+.activeWishlist:hover {
+    background: #ef4444 !important;
+    color: white !important;
+    border-color: #ef4444 !important;
+}
+
 .content {
     padding: 2rem 1rem;
     text-align: center;

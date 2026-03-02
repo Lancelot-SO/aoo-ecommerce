@@ -90,7 +90,7 @@ export default function CustomersPage() {
         
         try {
             if (editingUser) {
-                // Update existing user
+                // Update existing user profile
                 const { error } = await supabase
                     .from('profiles')
                     .update({
@@ -103,8 +103,27 @@ export default function CustomersPage() {
 
                 if (error) throw error;
 
+                // Sync admin_users table based on role change
+                const wasAdmin = editingUser.role === 'Admin';
+                const isNowAdmin = newUser.role === 'Admin';
+
+                if (isNowAdmin && !wasAdmin) {
+                    // Promote to admin: add to admin_users table
+                    const { error: adminError } = await supabase
+                        .from('admin_users')
+                        .upsert({ id: editingUser.id, role: 'staff', is_active: true });
+                    if (adminError) console.error('Error adding admin role:', adminError);
+                } else if (!isNowAdmin && wasAdmin) {
+                    // Demote from admin: remove from admin_users table
+                    const { error: removeError } = await supabase
+                        .from('admin_users')
+                        .delete()
+                        .eq('id', editingUser.id);
+                    if (removeError) console.error('Error removing admin role:', removeError);
+                }
+
                 // Update local state
-                setCustomers(customers.map(u => u.id === editingUser.id ? { ...u, ...newUser, class_year: newUser.classYear } : u));
+                setCustomers(customers.map(u => u.id === editingUser.id ? { ...u, name: newUser.name, email: newUser.email, role: newUser.role, class_year: newUser.classYear } : u));
                 alert("User updated successfully");
             } else {
                 // Create new user
@@ -156,7 +175,7 @@ export default function CustomersPage() {
 
     const openAddModal = () => {
         setEditingUser(null);
-        setNewUser({ name: "", email: "", role: "Alumni", classYear: "" });
+        setNewUser({ name: "", email: "", role: "Customer", classYear: "" });
         setIsModalOpen(true);
     };
 
@@ -275,7 +294,8 @@ export default function CustomersPage() {
                                     <td data-label="Role">
                                         <span className={`${styles.roleBadge} ${user.role === 'Admin' ? styles.roleAdmin :
                                                 user.role === 'Alumni' ? styles.roleAlumni :
-                                                    styles.roleStudent
+                                                    user.role === 'Customer' ? styles.roleCustomer :
+                                                        styles.roleStudent
                                             }`}>
                                             {user.role}
                                         </span>
@@ -352,6 +372,7 @@ export default function CustomersPage() {
                                             value={newUser.role}
                                             onChange={e => setNewUser({ ...newUser, role: e.target.value })}
                                         >
+                                            <option value="Customer">Customer</option>
                                             <option value="Alumni">Alumni</option>
                                             <option value="Student">Student</option>
                                             <option value="Admin">Admin</option>

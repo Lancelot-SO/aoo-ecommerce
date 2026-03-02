@@ -1,8 +1,11 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import BestSelling from "@/components/BestSelling";
 import FeaturedProducts from "@/components/FeaturedProducts";
+import Footer from "@/components/Footer";
 import styles from "./page.module.css";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -10,30 +13,7 @@ export default function Home() {
       <Header />
       <Hero />
 
-      <section className="section">
-        <div className="container">
-          <div className={styles.categoryGrid}>
-            <div className={`${styles.categoryCard} premium-card`}>
-              <div className={styles.categoryImage}>
-                <Image src="/centenary_blazer_1769187792564.png" alt="Apparel" fill className={styles.img} />
-                <div className={styles.categoryOverlay}>
-                  <span>Apparel</span>
-                  <h3>The Centenary Collection</h3>
-                </div>
-              </div>
-            </div>
-            <div className={`${styles.categoryCard} premium-card`}>
-              <div className={styles.categoryImage}>
-                <Image src="/luxury_watch_gold_1769187808007.png" alt="Accessories" fill className={styles.img} />
-                <div className={styles.categoryOverlay}>
-                  <span>Accessories</span>
-                  <h3>Timeless Elegance</h3>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <BestSelling />
 
       <FeaturedProducts />
 
@@ -63,7 +43,7 @@ export default function Home() {
                   <span className={styles.statLabel}>Akora Members</span>
                 </div>
               </div>
-              <button className={styles.outlineBtn}>Explore Our Story</button>
+              <Link href="/about" className={styles.outlineBtn}>Explore Our Story</Link>
             </div>
             <div className={styles.legacyImageWrapper}>
               <div className={styles.imageMain}>
@@ -91,45 +71,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className={styles.footer}>
-        <div className="container">
-          <div className={styles.footerGrid}>
-            <div className={styles.footerBrand}>
-              <h3>OAA Store</h3>
-              <p>The official marketplace for the Achimota Old Students Association Centenary.</p>
-            </div>
-            <div className={styles.footerLinks}>
-              <div>
-                <h4>Shop</h4>
-                <ul>
-                  <li>Apparel</li>
-                  <li>Accessories</li>
-                  <li>Collectibles</li>
-                </ul>
-              </div>
-              <div>
-                <h4>Legacy</h4>
-                <ul>
-                  <li>Our Story</li>
-                  <li>Centenary Events</li>
-                  <li>Foundation</li>
-                </ul>
-              </div>
-              <div>
-                <h4>Support</h4>
-                <ul>
-                  <li>Shipping</li>
-                  <li>Inquiries</li>
-                  <li>Terms</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div className={styles.copyright}>
-            <p>&copy; 2026 Old Achimotans Association. <span className="premium-gold-text">UT OMNES UNUM SINT</span></p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </main>
   );
 }

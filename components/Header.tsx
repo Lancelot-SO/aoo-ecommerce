@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { ShoppingBag, Menu, X, Search, ChevronDown, LogOut, User as UserIcon, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, Menu, X, Search, ChevronDown, LogOut, User as UserIcon, LayoutDashboard, Heart } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useAuth } from "@/context/AuthContext";
 import { motion, AnimatePresence } from "framer-motion";
 import styles from "./Header.module.css";
@@ -15,13 +16,15 @@ export default function Header() {
     const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const { cartCount } = useCart();
+    const { wishlistCount } = useWishlist();
     const { user, signOut, isAdmin } = useAuth();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
         const handleScroll = () => {
-            setIsScrolled(window.scrollY > 50);
+            const scrollTop = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop;
+            setIsScrolled(scrollTop > 20);
         };
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -66,9 +69,11 @@ export default function Header() {
                 </Link>
 
                 <div className={styles.actions}>
-                    <button className={styles.actionBtn}>
-                        <Search size={20} />
-                    </button>
+                    
+                    <Link href="/wishlist" className={styles.actionBtn}>
+                        <Heart size={20} />
+                        {mounted && wishlistCount > 0 && <span className={styles.cartBadge}>{wishlistCount}</span>}
+                    </Link>
                     <Link href="/cart" className={styles.actionBtn}>
                         <ShoppingBag size={20} />
                         {mounted && cartCount > 0 && <span className={styles.cartBadge}>{cartCount}</span>}
@@ -98,19 +103,25 @@ export default function Header() {
                                             <span className={styles.userEmail}>{user.email}</span>
                                         </div>
                                         <div className={styles.dropdownDivider} />
+                                        <Link 
+                                            href="/account" 
+                                            className={styles.dropdownItem}
+                                            onClick={() => setIsUserDropdownOpen(false)}
+                                        >
+                                            <UserIcon size={16} />
+                                            <span>My Account</span>
+                                        </Link>
                                         {isAdmin && (
-                                            <>
-                                                <Link 
-                                                    href="/admin/dashboard" 
-                                                    className={styles.dropdownItem}
-                                                    onClick={() => setIsUserDropdownOpen(false)}
-                                                >
-                                                    <LayoutDashboard size={16} />
-                                                    <span>Dashboard</span>
-                                                </Link>
-                                                <div className={styles.dropdownDivider} />
-                                            </>
+                                            <Link 
+                                                href="/admin/dashboard" 
+                                                className={styles.dropdownItem}
+                                                onClick={() => setIsUserDropdownOpen(false)}
+                                            >
+                                                <LayoutDashboard size={16} />
+                                                <span>Admin Dashboard</span>
+                                            </Link>
                                         )}
+                                        <div className={styles.dropdownDivider} />
                                         <button 
                                             onClick={() => {
                                                 signOut();
@@ -181,6 +192,14 @@ export default function Header() {
                                                     <div className={styles.userAvatar}>{userInitials}</div>
                                                     <span className={styles.userEmail}>{user.email}</span>
                                                 </div>
+                                                <Link 
+                                                    href="/account" 
+                                                    className={styles.mobileDashboardBtn}
+                                                    onClick={() => setIsMenuOpen(false)}
+                                                >
+                                                    <UserIcon size={18} />
+                                                    <span>My Account</span>
+                                                </Link>
                                                 {isAdmin && (
                                                     <Link 
                                                         href="/admin/dashboard" 
@@ -188,7 +207,7 @@ export default function Header() {
                                                         onClick={() => setIsMenuOpen(false)}
                                                     >
                                                         <LayoutDashboard size={18} />
-                                                        <span>Dashboard</span>
+                                                        <span>Admin Dashboard</span>
                                                     </Link>
                                                 )}
                                                 <button onClick={() => { signOut(); setIsMenuOpen(false); }} className={styles.mobileLogoutBtn}>
