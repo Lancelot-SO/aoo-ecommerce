@@ -4,11 +4,11 @@ import Header from "@/components/Header";
 import { useCart } from "@/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
-import { Trash2, Plus, Minus, ArrowRight, ShoppingBag } from "lucide-react";
+import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, XCircle } from "lucide-react";
 import styles from "./cart.module.css";
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, cartTotal } = useCart();
+    const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
 
     if (cart.length === 0) {
         return (
@@ -32,7 +32,13 @@ export default function CartPage() {
         <main>
             <Header />
             <div className="container" style={{ paddingTop: '120px' }}>
-                <h1 className={styles.title}>Shopping Cart</h1>
+                <div className={styles.cartHeader}>
+                    <h1 className={styles.title}>Shopping Cart</h1>
+                    <button className={styles.clearAllBtn} onClick={() => clearCart()}>
+                        <XCircle size={16} />
+                        Clear All
+                    </button>
+                </div>
 
                 <div className={styles.cartGrid}>
                     <div className={styles.itemsList}>

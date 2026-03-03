@@ -234,6 +234,7 @@
     align-items: center;
     padding: 0.75rem 0;
     border-bottom: 1px solid #f3f4f6;
+    gap: 1.5rem;
 }
 
 .infoItem:last-child {
@@ -244,12 +245,15 @@
     font-size: 0.8rem;
     color: var(--muted-foreground);
     font-weight: 600;
+    flex-shrink: 0;
+    min-width: 100px;
 }
 
 .infoValue {
     font-size: 0.875rem;
     font-weight: 600;
     text-align: right;
+    word-break: break-all;
 }
 
 /* Quick Links */
