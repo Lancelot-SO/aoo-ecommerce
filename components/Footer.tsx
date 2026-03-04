@@ -38,7 +38,7 @@ export default function Footer() {
                     </div>
                 </div>
                 <div className={styles.copyright}>
-                    <p>&copy; 2026 Old Achimotans Association. <span className="premium-gold-text">UT OMNES UNUM SINT</span></p>
+                    <p>&copy; 2026 Old Achimotans Association. <span className="text-gold-footer">UT OMNES UNUM SINT</span></p>
                 </div>
             </div>
         </footer>

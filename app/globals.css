@@ -24,6 +24,7 @@
 
   /* Gradints */
   --gold-gradient: linear-gradient(135deg, #d4af37 0%, #f9e29c 50%, #d4af37 100%);
+  --gold-color: #d4af37;
 }
 
 .dark {
@@ -106,6 +107,13 @@ h6 {
 
 .premium-gold-text {
   background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gold-footer {
+  background: var(--gold-color);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
