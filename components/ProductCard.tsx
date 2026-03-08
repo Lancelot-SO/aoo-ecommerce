@@ -4,7 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Eye, Check, Heart } from "lucide-react";
-import { useCart } from "@/context/CartContext";
+import { useCart, MAX_CART_ITEMS } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import styles from "./ProductCard.module.css";
 
@@ -45,7 +45,7 @@ function isValidImageUrl(url: string): boolean {
 const FALLBACK_IMAGE = "/products/blazer.png";
 
 export default function ProductCard({ id, name, price, image, category, stock_quantity = 0 }: ProductCardProps) {
-    const { addToCart } = useCart();
+    const { addToCart, cartCount } = useCart();
     const { toggleWishlist, isInWishlist } = useWishlist();
     const isWishlisted = isInWishlist(id);
     const [imgSrc, setImgSrc] = useState(() =>
@@ -99,10 +99,10 @@ export default function ProductCard({ id, name, price, image, category, stock_qu
                 </Link>
                 <div className={styles.actions}>
                     <button 
-                        className={`${styles.actionBtn} ${added ? styles.added : ""} ${isSoldOut ? styles.disabledBtn : ""}`}
+                        className={`${styles.actionBtn} ${added ? styles.added : ""} ${isSoldOut || cartCount >= MAX_CART_ITEMS ? styles.disabledBtn : ""}`}
                         onClick={handleAddToCart}
-                        disabled={isSoldOut}
-                        title={isSoldOut ? "Sold Out" : (added ? "Added to cart!" : "Add to cart")}
+                        disabled={isSoldOut || cartCount >= MAX_CART_ITEMS}
+                        title={isSoldOut ? "Sold Out" : (cartCount >= MAX_CART_ITEMS ? "Cart is full" : (added ? "Added to cart!" : "Add to cart"))}
                     >
                         {added ? <Check size={18} /> : (isSoldOut ? <ShoppingCart size={18} opacity={0.5} /> : <ShoppingCart size={18} />)}
                     </button>

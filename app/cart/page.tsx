@@ -1,14 +1,14 @@
 "use client";
 
 import Header from "@/components/Header";
-import { useCart } from "@/context/CartContext";
+import { useCart, MAX_CART_ITEMS, MAX_ITEM_QUANTITY } from "@/context/CartContext";
 import Image from "next/image";
 import Link from "next/link";
 import { Trash2, Plus, Minus, ArrowRight, ShoppingBag, XCircle } from "lucide-react";
 import styles from "./cart.module.css";
 
 export default function CartPage() {
-    const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useCart();
+    const { cart, removeFromCart, updateQuantity, cartTotal, clearCart, cartCount } = useCart();
 
     if (cart.length === 0) {
         return (
@@ -61,7 +61,11 @@ export default function CartPage() {
                                             <Minus size={16} />
                                         </button>
                                         <span>{item.quantity}</span>
-                                        <button onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}>
+                                        <button 
+                                            onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
+                                            disabled={item.quantity >= MAX_ITEM_QUANTITY || cartCount >= MAX_CART_ITEMS}
+                                            title={item.quantity >= MAX_ITEM_QUANTITY ? "Maximum quantity reached" : cartCount >= MAX_CART_ITEMS ? "Cart is full" : ""}
+                                        >
                                             <Plus size={16} />
                                         </button>
                                     </div>

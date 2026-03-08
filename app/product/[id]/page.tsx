@@ -7,7 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
-import { useCart } from "@/context/CartContext";
+import { useCart, MAX_CART_ITEMS, MAX_ITEM_QUANTITY } from "@/context/CartContext";
 import styles from "./product.module.css";
 
 const SIZES = ["S", "M", "L", "XL", "XXL"];
@@ -17,7 +17,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     const id = resolvedParams.id;
 
     const router = useRouter();
-    const { addToCart } = useCart();
+    const { addToCart, cartCount, cart: cartItems } = useCart();
     const [product, setProduct] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [selectedSize, setSelectedSize] = useState("M");
@@ -57,6 +57,19 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
     const handleAddToCart = () => {
         if (!product) return;
+
+        const existingItem = cartItems.find(i => i.id === product.id && i.size === selectedSize);
+        const currentItemQuantity = existingItem ? existingItem.quantity : 0;
+
+        if (currentItemQuantity + quantity > MAX_ITEM_QUANTITY) {
+            alert(`You can only have up to ${MAX_ITEM_QUANTITY} of this item in your cart.`);
+            return;
+        }
+
+        if (cartCount + quantity > MAX_CART_ITEMS) {
+            alert(`Your cart is full. Maximum ${MAX_CART_ITEMS} items allowed.`);
+            return;
+        }
 
         addToCart({
             id: product.id,
@@ -204,8 +217,12 @@ const displayImage = activeImage || galleryImages[0] || fallbackImage;
                                     >-</button>
                                     <span>{quantity}</span>
                                     <button 
-                                        onClick={() => setQuantity(Math.min(product.stock_quantity || 1, quantity + 1))}
-                                        disabled={isSoldOut || quantity >= (product.stock_quantity || 0)}
+                                        onClick={() => {
+                                            const existingItem = cartItems.find(i => i.id === product.id && i.size === selectedSize);
+                                            const currentItemQuantity = existingItem ? existingItem.quantity : 0;
+                                            setQuantity(Math.min(product.stock_quantity || 1, MAX_ITEM_QUANTITY - currentItemQuantity, quantity + 1));
+                                        }}
+                                        disabled={isSoldOut || quantity >= (product.stock_quantity || 0) || (quantity + (cartItems.find(i => i.id === product.id && i.size === selectedSize)?.quantity || 0)) >= MAX_ITEM_QUANTITY}
                                     >+</button>
                                 </div>
                             </div>
@@ -213,16 +230,17 @@ const displayImage = activeImage || galleryImages[0] || fallbackImage;
 
                         <div className={styles.actions}>
                             <button
-                                className={`${styles.addToCart} ${added ? styles.added : ""} ${isSoldOut ? styles.soldOutBtn : ""}`}
+                                className={`${styles.addToCart} ${added ? styles.added : ""} ${isSoldOut || cartCount >= MAX_CART_ITEMS ? styles.soldOutBtn : ""}`}
                                 onClick={handleAddToCart}
-                                disabled={added || isSoldOut}
+                                disabled={added || isSoldOut || cartCount >= MAX_CART_ITEMS}
+                                title={cartCount >= MAX_CART_ITEMS ? "Cart is full" : ""}
                             >
                                 {isSoldOut ? 'Sold Out' : (added ? <><Check size={20} /> Added!</> : <><ShoppingCart size={20} /> Add to Cart</>)}
                             </button>
                             <button 
-                                className={`${styles.buyNow} ${isSoldOut ? styles.soldOutBtn : ""}`} 
+                                className={`${styles.buyNow} ${isSoldOut || cartCount >= MAX_CART_ITEMS ? styles.soldOutBtn : ""}`} 
                                 onClick={handleBuyNow}
-                                disabled={isSoldOut}
+                                disabled={isSoldOut || cartCount >= MAX_CART_ITEMS}
                             >
                                 {isSoldOut ? 'Out of Stock' : 'Buy It Now'}
                             </button>

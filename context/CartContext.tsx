@@ -12,6 +12,9 @@ export interface CartItem {
     color?: string;
 }
 
+export const MAX_CART_ITEMS = 20;
+export const MAX_ITEM_QUANTITY = 10;
+
 interface CartContextType {
     cart: CartItem[];
     addToCart: (item: CartItem) => void;
@@ -51,13 +54,34 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const addToCart = (item: CartItem) => {
         setCart(prev => {
             const existingItem = prev.find(i => i.id === item.id && i.size === item.size);
+            const currentTotalQuantity = prev.reduce((sum, i) => sum + i.quantity, 0);
+
             if (existingItem) {
+                const newQuantity = existingItem.quantity + item.quantity;
+                if (newQuantity > MAX_ITEM_QUANTITY) {
+                    alert(`Maximum quantity reached for this item (max ${MAX_ITEM_QUANTITY})`);
+                    return prev;
+                }
+                if (currentTotalQuantity + item.quantity > MAX_CART_ITEMS) {
+                    alert(`Maximum cart capacity reached (max ${MAX_CART_ITEMS} items)`);
+                    return prev;
+                }
                 return prev.map(i =>
                     i.id === item.id && i.size === item.size
-                        ? { ...i, quantity: i.quantity + item.quantity }
+                        ? { ...i, quantity: newQuantity }
                         : i
                 );
             }
+
+            if (currentTotalQuantity + item.quantity > MAX_CART_ITEMS) {
+                alert(`Maximum cart capacity reached (max ${MAX_CART_ITEMS} items)`);
+                return prev;
+            }
+            if (item.quantity > MAX_ITEM_QUANTITY) {
+                alert(`Maximum quantity reached for this item (max ${MAX_ITEM_QUANTITY})`);
+                return prev;
+            }
+
             return [...prev, item];
         });
     };
@@ -67,9 +91,27 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     };
 
     const updateQuantity = (id: string, quantity: number, size?: string) => {
-        setCart(prev => prev.map(i =>
-            i.id === id && i.size === size ? { ...i, quantity } : i
-        ));
+        setCart(prev => {
+            const itemToUpdate = prev.find(i => i.id === id && i.size === size);
+            if (!itemToUpdate) return prev;
+
+            const diff = quantity - itemToUpdate.quantity;
+            const currentTotalQuantity = prev.reduce((sum, i) => sum + i.quantity, 0);
+
+            if (quantity > MAX_ITEM_QUANTITY) {
+                alert(`Maximum quantity reached for this item (max ${MAX_ITEM_QUANTITY})`);
+                return prev;
+            }
+
+            if (currentTotalQuantity + diff > MAX_CART_ITEMS) {
+                alert(`Maximum cart capacity reached (max ${MAX_CART_ITEMS} items)`);
+                return prev;
+            }
+
+            return prev.map(i =>
+                i.id === id && i.size === size ? { ...i, quantity } : i
+            );
+        });
     };
 
     const clearCart = () => setCart([]);
