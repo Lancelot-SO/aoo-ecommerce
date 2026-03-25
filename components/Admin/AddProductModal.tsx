@@ -83,8 +83,11 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
         let slug = baseSlug;
         let counter = 1;
         let unique = false;
+        const maxAttempts = 10;
+        let attempts = 0;
 
-        while (!unique) {
+        while (!unique && attempts < maxAttempts) {
+            attempts++;
             const { data, error } = await supabase
                 .from('products')
                 .select('slug')
@@ -93,9 +96,6 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
 
             if (error) {
                 console.error("Error checking slug uniqueness:", error);
-                // If there's an error, we'll just try with the current slug and let the database handle it,
-                // or we could throw. For now, let's assume it's unique if we can't check it, 
-                // but the DB constraint will still catch it if it's not.
                 return slug;
             }
 
@@ -111,6 +111,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (loading) return;
         setLoading(true);
 
         console.log("Starting product submission...");
@@ -143,20 +144,42 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                 images: images.filter(img => img.trim() !== ''),
                 sizes: selectedSizes,
                 colors: colors.filter(c => c.trim() !== ''),
+                is_active: true,
+                is_featured: false,
+                low_stock_threshold: 5,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
             };
 
             console.log("Product data prepared:", productData);
+            // window.alert("1. Data prepared. Sending to Supabase...");
 
-            // 2. Insert into Supabase directly
-            const { error } = await supabase.from('products').insert([productData]);
+            // 2. Insert into Supabase with timeout
+            console.log("Calling Supabase insert with 15s timeout...");
+            
+            const insertPromise = supabase.from('products').insert([productData]);
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Database request timed out (15s). Please check your connection.")), 15000)
+            );
+
+            const { error } = await Promise.race([insertPromise, timeoutPromise]) as any;
 
             if (error) {
-                console.error("Supabase error:", error);
+                console.error("Supabase insert error details:", error);
+                alert(`Error: ${error.message || JSON.stringify(error)}`);
                 throw error;
             }
 
             console.log("Supabase insert successful");
-            onSuccess();
+            // window.alert("2. Insert successful. Refreshing inventory...");
+            
+            try {
+                onSuccess();
+            } catch (e) {
+                console.error("Error in onSuccess:", e);
+            }
+            
+            console.log("Calling onClose...");
             onClose();
             
             // Reset form
@@ -226,7 +249,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                     />
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Price (GH₵)</label>
+                                    <label>Price (GHS)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -238,7 +261,7 @@ export default function AddProductModal({ isOpen, onClose, onSuccess }: AddProdu
                                     />
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Sale Price (GH₵)</label>
+                                    <label>Sale Price (GHS)</label>
                                     <input
                                         type="number"
                                         step="0.01"

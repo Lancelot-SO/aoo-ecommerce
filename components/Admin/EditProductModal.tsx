@@ -134,8 +134,11 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
         let slug = baseSlug;
         let counter = 1;
         let unique = false;
+        const maxAttempts = 10;
+        let attempts = 0;
 
-        while (!unique) {
+        while (!unique && attempts < maxAttempts) {
+            attempts++;
             const { data, error } = await supabase
                 .from('products')
                 .select('slug')
@@ -187,10 +190,16 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
                 updated_at: new Date().toISOString(),
             };
 
-            const { error } = await supabase
+            const updatePromise = supabase
                 .from('products')
                 .update(productData)
                 .eq('id', product.id);
+                
+            const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error("Database request timed out (15s). Please check your connection.")), 15000)
+            );
+
+            const { error } = await Promise.race([updatePromise, timeoutPromise]) as any;
 
             if (error) throw error;
 
@@ -246,7 +255,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
                                     />
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Price (GH₵)</label>
+                                    <label>Price (GHS)</label>
                                     <input
                                         type="number"
                                         step="0.01"
@@ -258,7 +267,7 @@ export default function EditProductModal({ isOpen, onClose, onSuccess, product }
                                     />
                                 </div>
                                 <div className={styles.inputGroup}>
-                                    <label>Sale Price (GH₵)</label>
+                                    <label>Sale Price (GHS)</label>
                                     <input
                                         type="number"
                                         step="0.01"

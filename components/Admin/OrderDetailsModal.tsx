@@ -158,7 +158,7 @@ export default function OrderDetailsModal({ isOpen, onClose, order }: OrderDetai
                                             </div>
                                             <div className={styles.itemPricing}>
                                                 <span className={styles.itemQty}>x{item.quantity}</span>
-                                                <span className={styles.itemPrice}>GH₵ {(item.price * item.quantity).toLocaleString()}</span>
+                                                <span className={styles.itemPrice}>GHS {(item.price * item.quantity).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -171,15 +171,15 @@ export default function OrderDetailsModal({ isOpen, onClose, order }: OrderDetai
                                 <div className={styles.summaryCard}>
                                     <div className={styles.summaryRow}>
                                         <span>Subtotal</span>
-                                        <span>GH₵ {order.subtotal.toLocaleString()}</span>
+                                        <span>GHS {order.subtotal.toLocaleString()}</span>
                                     </div>
                                     <div className={styles.summaryRow}>
                                         <span>Delivery Fee</span>
-                                        <span>GH₵ {order.delivery_fee.toLocaleString()}</span>
+                                        <span>GHS {order.delivery_fee.toLocaleString()}</span>
                                     </div>
                                     <div className={`${styles.summaryRow} ${styles.totalRow}`}>
                                         <span>Total</span>
-                                        <span>GH₵ {order.total.toLocaleString()}</span>
+                                        <span>GHS {order.total.toLocaleString()}</span>
                                     </div>
                                     <div className={styles.paymentMethod}>
                                         <span>Paid via:</span>

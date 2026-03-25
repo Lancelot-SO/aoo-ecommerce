@@ -373,7 +373,7 @@ export default function OrdersPage() {
                                             </td>
                                             <td data-label="Date">{formatDate(order.created_at)}</td>
                                             <td data-label="Items">{getItemCount(order.items)} Items</td>
-                                            <td data-label="Total Amount" style={{ fontWeight: 600 }}>GH₵ {order.total.toLocaleString()}</td>
+                                            <td data-label="Total Amount" style={{ fontWeight: 600 }}>GHS {order.total.toLocaleString()}</td>
                                             <td data-label="Status">
                                                 <motion.span
                                                     className={`${styles.statusBadge} ${getStatusClass(status)}`}

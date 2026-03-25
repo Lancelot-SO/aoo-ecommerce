@@ -301,7 +301,7 @@ export default function CustomersPage() {
                                         </span>
                                     </td>
                                     <td data-label="Orders">{user.orders_count || 0} Orders</td>
-                                    <td data-label="Total Spent" style={{ fontWeight: 600 }}>GH₵ {user.total_spent || 0}</td>
+                                    <td data-label="Total Spent" style={{ fontWeight: 600 }}>GHS {user.total_spent || 0}</td>
                                     <td data-label="Actions">
                                         <div style={{ display: 'flex', gap: 12, justifyContent: 'inherit' }}>
                                             <button 

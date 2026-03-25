@@ -53,7 +53,7 @@ export default function CartPage() {
                                         {item.size && `Size: ${item.size}`}
                                         {item.color && ` • Color: ${item.color}`}
                                     </p>
-                                    <p className={styles.itemPrice}>GH₵ {item.price.toLocaleString()}</p>
+                                    <p className={styles.itemPrice}>GHS {item.price.toLocaleString()}</p>
                                 </div>
                                 <div className={styles.itemActions}>
                                     <div className={styles.quantityControls}>
@@ -88,7 +88,7 @@ export default function CartPage() {
                         </div>
                         <div className={styles.summaryRow}>
                             <span>Delivery Fee</span>
-                            <span>GH₵ 0.00</span>
+                            <span>GHS 0.00</span>
                         </div>
                         <div className={styles.divider}></div>
                         <div className={`${styles.summaryRow} ${styles.totalRow}`}>

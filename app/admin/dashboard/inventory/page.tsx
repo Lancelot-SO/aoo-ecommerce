@@ -439,11 +439,11 @@ export default function InventoryPage() {
                                     <td data-label="Price" style={{ fontWeight: 600 }}>
                                         {item.sale_price ? (
                                             <div className={styles.priceCol}>
-                                                <span className={styles.salePrice}>GH₵ {item.sale_price}</span>
-                                                <span className={styles.originalPrice}>GH₵ {item.price}</span>
+                                                <span className={styles.salePrice}>GHS {item.sale_price}</span>
+                                                <span className={styles.originalPrice}>GHS {item.price}</span>
                                             </div>
                                         ) : (
-                                            `GH₵ ${item.price}`
+                                            `GHS ${item.price}`
                                         )}
                                     </td>
                                     <td data-label="Status">

@@ -137,14 +137,14 @@ export default function ProductDetailsModal({ isOpen, onClose, product, onEdit }
                                 <div className={styles.priceMain}>
                                     {product.sale_price ? (
                                         <>
-                                            <span className={styles.salePrice}>GH₵ {product.sale_price.toLocaleString()}</span>
-                                            <span className={styles.originalPrice}>GH₵ {product.price.toLocaleString()}</span>
+                                            <span className={styles.salePrice}>GHS {product.sale_price.toLocaleString()}</span>
+                                            <span className={styles.originalPrice}>GHS {product.price.toLocaleString()}</span>
                                             <span className={styles.discount}>
                                                 -{Math.round((1 - product.sale_price / product.price) * 100)}%
                                             </span>
                                         </>
                                     ) : (
-                                        <span className={styles.price}>GH₵ {product.price.toLocaleString()}</span>
+                                        <span className={styles.price}>GHS {product.price.toLocaleString()}</span>
                                     )}
                                 </div>
                             </div>

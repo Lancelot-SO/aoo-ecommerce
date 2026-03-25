@@ -143,7 +143,7 @@ export default function SettingsPage() {
                                 <div className={styles.formGroup}>
                                     <label>Currency</label>
                                     <select defaultValue="GHS">
-                                        <option value="GHS">Ghana Cedi (GH₵)</option>
+                                        <option value="GHS">Ghana Cedi (GHS)</option>
                                         <option value="USD">US Dollar ($)</option>
                                     </select>
                                 </div>

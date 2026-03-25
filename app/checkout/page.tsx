@@ -210,7 +210,7 @@ export default function CheckoutPage() {
                                 {cart.length > 0 ? cart.map((item: any) => (
                                     <div key={`${item.id}-${item.size}`} className={styles.item}>
                                         <span>{item.name} {item.size ? `(${item.size})` : ""} x {item.quantity}</span>
-                                        <span>GH₵ {(item.price * item.quantity).toLocaleString()}</span>
+                                        <span>GHS {(item.price * item.quantity).toLocaleString()}</span>
                                     </div>
                                 )) : (
                                     <p style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>Your cart is empty</p>
@@ -219,15 +219,15 @@ export default function CheckoutPage() {
                             <div className={styles.divider}></div>
                             <div className={styles.summaryRow}>
                                 <span>Subtotal</span>
-                                <span>GH₵ {cartTotal.toLocaleString()}</span>
+                                <span>GHS {cartTotal.toLocaleString()}</span>
                             </div>
                             <div className={styles.summaryRow}>
                                 <span>Delivery Fee</span>
-                                <span>GH₵ {deliveryFee.toFixed(2)}</span>
+                                <span>GHS {deliveryFee.toFixed(2)}</span>
                             </div>
                             <div className={`${styles.summaryRow} ${styles.totalRow}`}>
                                 <span>Total</span>
-                                <span>GH₵ {totalAmount.toLocaleString()}</span>
+                                <span>GHS {totalAmount.toLocaleString()}</span>
                             </div>
                             <div className={styles.divider}></div>
                             

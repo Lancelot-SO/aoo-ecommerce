@@ -30,7 +30,7 @@ export default function AdminDashboard() {
     const [showDateDropdown, setShowDateDropdown] = useState(false);
     const [selectedDateRange, setSelectedDateRange] = useState("Last 30 Days");
     const [stats, setStats] = useState([
-        { label: "Total Revenue", value: "GH₵ 0", icon: <DollarSign size={22} />, trend: "0%", color: "#d4af37" },
+        { label: "Total Revenue", value: "GHS 0", icon: <DollarSign size={22} />, trend: "0%", color: "#d4af37" },
         { label: "Total Orders", value: "0", icon: <ShoppingBag size={22} />, trend: "0%", color: "#000000" },
         { label: "Total Products", value: "0", icon: <Package size={22} />, trend: "0%", color: "#000000" },
         { label: "Total Customers", value: "0", icon: <Users size={22} />, trend: "0%", color: "#000000" },
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
                 .select('*', { count: 'exact', head: true });
 
             setStats([
-                { label: "Total Revenue", value: `GH₵ ${totalRevenue.toLocaleString()}`, icon: <DollarSign size={22} />, trend: "0%", color: "#d4af37" },
+                { label: "Total Revenue", value: `GHS ${totalRevenue.toLocaleString()}`, icon: <DollarSign size={22} />, trend: "0%", color: "#d4af37" },
                 { label: "Total Orders", value: orderCount.toString(), icon: <ShoppingBag size={22} />, trend: "0%", color: "#000000" },
                 { label: "Total Products", value: productCount?.toString() || "0", icon: <Package size={22} />, trend: "0%", color: "#000000" },
                 { label: "Total Customers", value: (customerCount || 0).toString(), icon: <Users size={22} />, trend: "0%", color: "#000000" },
@@ -85,12 +85,9 @@ export default function AdminDashboard() {
                 .limit(5);
 
             setRecentOrders(recentOrdersData || []);
-            // For the export, we still might want all orders, but let's only fetch them on demand if possible.
-            // For now, let's keep allOrders updated but potentially with fewer fields if needed.
             setAllOrders(revenueData || []); 
 
             // Basic Top Products logic (placeholder for now)
-            // In a real app, you'd aggregate from order items
             const { data: popularProducts } = await supabase
                 .from('products')
                 .select('*')
@@ -100,7 +97,7 @@ export default function AdminDashboard() {
                 id: p.id,
                 name: p.name,
                 sales: Math.floor(Math.random() * 100), // Placeholder sales
-                price: `GH₵ ${p.price}`
+                price: `GHS ${p.price}`
             })) || []);
 
         } catch (error) {
@@ -119,7 +116,6 @@ export default function AdminDashboard() {
         "Custom Range"
     ];
 
-    // Close dropdown when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dateFilterRef.current && !dateFilterRef.current.contains(event.target as Node)) {
@@ -133,7 +129,6 @@ export default function AdminDashboard() {
     const handleDateRangeSelect = (range: string) => {
         setSelectedDateRange(range);
         setShowDateDropdown(false);
-        // Trigger data refresh with new date range
         handleRefresh();
     };
 
@@ -175,9 +170,7 @@ export default function AdminDashboard() {
         }
     };
 
-
     const chartData = [40, 65, 45, 80, 55, 90, 75];
-
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
@@ -403,7 +396,7 @@ export default function AdminDashboard() {
                                             <td data-label="Order ID">#{order.order_number}</td>
                                             <td data-label="Customer">{order.customer_name}</td>
                                             <td data-label="Date">{new Date(order.created_at).toLocaleDateString()}</td>
-                                            <td data-label="Amount" style={{ fontWeight: 600 }}>GH₵ {order.total}</td>
+                                            <td data-label="Amount" style={{ fontWeight: 600 }}>GHS {order.total}</td>
                                             <td data-label="Status">
                                                 <span className={`${styles.statusBadge} ${order.payment_status === 'paid' ? styles.statusPaid :
                                                     order.payment_status === 'shipped' ? styles.statusShipped :
@@ -453,7 +446,6 @@ export default function AdminDashboard() {
                     </motion.div>
                 </div>
             </motion.div>
-
         </>
     );
 }

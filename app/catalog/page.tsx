@@ -177,7 +177,7 @@ export default function Catalog() {
 
                     {/* Price Filter */}
                     <div className={styles.priceFilter}>
-                        <span className={styles.filterLabel}>Price Range (GH₵)</span>
+                        <span className={styles.filterLabel}>Price Range (GHS)</span>
                         <div className={styles.priceInputs}>
                             <input
                                 type="number"
