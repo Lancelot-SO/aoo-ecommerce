@@ -13,7 +13,7 @@ import {
     ChevronLeft,
     Menu,
     X,
-    ExternalLink
+    Store
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -103,9 +103,9 @@ export default function Sidebar() {
                     </nav>
 
                     <div className={styles.footer}>
-                        <Link href="/" className={styles.viewWebsiteBtn}>
-                            <ExternalLink size={20} />
-                            <span>View Website</span>
+                        <Link href="/catalog" className={styles.viewWebsiteBtn}>
+                            <Store size={20} />
+                            <span>View Shop</span>
                         </Link>
                         <button className={styles.logoutBtn} onClick={handleLogout}>
                             <LogOut size={20} />

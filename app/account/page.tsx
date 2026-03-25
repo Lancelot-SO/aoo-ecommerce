@@ -131,10 +131,18 @@ export default function AccountPage() {
             <div className="container">
                 {/* Welcome */}
                 <div className={styles.welcome}>
-                    <h1>
-                        Welcome back, {profile?.name || user?.email?.split("@")[0] || "User"}
-                    </h1>
-                    <p>Here&apos;s an overview of your account and recent orders.</p>
+                    <div className={styles.welcomeHeader}>
+                        <div>
+                            <h1>
+                                Welcome back, {profile?.name || user?.email?.split("@")[0] || "User"}
+                            </h1>
+                            <p>Here&apos;s an overview of your account and recent orders.</p>
+                        </div>
+                        <Link href="/catalog" className={styles.shopBtn}>
+                            <Store size={18} />
+                            View Shop
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Stats */}
@@ -324,7 +332,7 @@ export default function AccountPage() {
                             <div className={styles.quickLinks}>
                                 <Link href="/catalog" className={styles.quickLink}>
                                     <Store size={18} />
-                                    Browse Shop
+                                    View Shop
                                 </Link>
                                 <Link href="/wishlist" className={styles.quickLink}>
                                     <Heart size={18} />

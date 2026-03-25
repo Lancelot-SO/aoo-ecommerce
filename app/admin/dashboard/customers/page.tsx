@@ -79,7 +79,7 @@ export default function CustomersPage() {
                 user.role,
                 user.class_year || 'N/A',
                 user.orders_count || 0,
-                `GH₵ ${user.total_spent || 0}`
+                `GHS ${user.total_spent || 0}`
             ]);
             exportToPDF(headers, data, `users_report_${new Date().getTime()}`, 'Users/Customers Report');
         }

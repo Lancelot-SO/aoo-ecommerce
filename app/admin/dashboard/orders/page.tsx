@@ -12,10 +12,8 @@ import {
     ArrowUpRight,
     Loader2,
     AlertCircle,
-    Play,
     RefreshCw,
-    Clock,
-    Zap
+    Clock
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -49,21 +47,6 @@ interface Order {
     created_at: string;
 }
 
-interface SimulationState {
-    isRunning: boolean;
-    currentOrderId: string | null;
-    stage: string;
-    timeRemaining: number;
-}
-
-// Order flow stages with timing (in seconds)
-const ORDER_FLOW_STAGES = [
-    { payment_status: 'pending', order_status: 'pending', label: 'Pending', duration: 60 },      // 1 minute
-    { payment_status: 'paid', order_status: 'pending', label: 'Paid', duration: 30 },           // 30 seconds
-    { payment_status: 'paid', order_status: 'processing', label: 'Processing', duration: 30 },  // 30 seconds
-    { payment_status: 'paid', order_status: 'shipped', label: 'Shipped', duration: 30 },        // 30 seconds
-    { payment_status: 'paid', order_status: 'delivered', label: 'Delivered', duration: 0 },     // Final state
-];
 
 export default function OrdersPage() {
     const [activeTab, setActiveTab] = useState("All Orders");
@@ -71,12 +54,6 @@ export default function OrdersPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
-    const [simulation, setSimulation] = useState<SimulationState>({
-        isRunning: false,
-        currentOrderId: null,
-        stage: '',
-        timeRemaining: 0
-    });
     const [recentUpdate, setRecentUpdate] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const pageRef = useRef(0);
@@ -86,8 +63,6 @@ export default function OrdersPage() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
-    const simulationTimerRef = useRef<NodeJS.Timeout | null>(null);
-    const countdownRef = useRef<NodeJS.Timeout | null>(null);
 
     // Fetch orders
     const fetchOrders = useCallback(async (isLoadMore = false) => {
@@ -176,8 +151,6 @@ export default function OrdersPage() {
 
         return () => {
             supabase.removeChannel(channel);
-            if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
-            if (countdownRef.current) clearInterval(countdownRef.current);
         };
     }, [fetchOrders]);
 
@@ -198,132 +171,6 @@ export default function OrdersPage() {
         }
     };
 
-    // Create a test order for simulation
-    const createTestOrder = async (): Promise<string | null> => {
-        const testNames = ['Kwame Asante', 'Ama Mensah', 'Kofi Boateng', 'Akua Owusu', 'Yaw Appiah'];
-        const testEmails = ['kwame@test.com', 'ama@test.com', 'kofi@test.com', 'akua@test.com', 'yaw@test.com'];
-        const randomIndex = Math.floor(Math.random() * testNames.length);
-
-        const orderData = {
-            order_number: `TEST-${Date.now().toString(36).toUpperCase()}`,
-            customer_name: testNames[randomIndex],
-            customer_email: testEmails[randomIndex],
-            customer_phone: '024' + Math.floor(Math.random() * 10000000).toString().padStart(7, '0'),
-            delivery_address: 'Test Address, Accra',
-            items: [{ product_id: 'test-1', name: 'Test Product', price: 150, quantity: 2 }],
-            subtotal: 300,
-            delivery_fee: 25,
-            total: 325,
-            payment_method: 'momo',
-            payment_status: 'pending',
-            order_status: 'pending'
-        };
-
-        const { data, error } = await supabase
-            .from('orders')
-            .insert([orderData])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('Error creating test order:', error);
-            return null;
-        }
-
-        return data.id;
-    };
-
-    // Run the order flow simulation
-    const runSimulation = async (orderId: string, stageIndex: number = 0) => {
-        if (stageIndex >= ORDER_FLOW_STAGES.length - 1) {
-            // Simulation complete
-            setSimulation(prev => ({
-                ...prev,
-                isRunning: false,
-                stage: 'Complete!',
-                timeRemaining: 0
-            }));
-            return;
-        }
-
-        const currentStage = ORDER_FLOW_STAGES[stageIndex];
-        const nextStage = ORDER_FLOW_STAGES[stageIndex + 1];
-
-        setSimulation(prev => ({
-            ...prev,
-            stage: currentStage.label,
-            timeRemaining: currentStage.duration
-        }));
-
-        // Start countdown
-        if (countdownRef.current) clearInterval(countdownRef.current);
-        countdownRef.current = setInterval(() => {
-            setSimulation(prev => ({
-                ...prev,
-                timeRemaining: Math.max(0, prev.timeRemaining - 1)
-            }));
-        }, 1000);
-
-        // Schedule next stage
-        simulationTimerRef.current = setTimeout(async () => {
-            if (countdownRef.current) clearInterval(countdownRef.current);
-
-            try {
-                await updateOrderStatus(orderId, nextStage.payment_status, nextStage.order_status);
-                runSimulation(orderId, stageIndex + 1);
-            } catch (err) {
-                setSimulation(prev => ({
-                    ...prev,
-                    isRunning: false,
-                    stage: 'Error',
-                    timeRemaining: 0
-                }));
-            }
-        }, currentStage.duration * 1000);
-    };
-
-    // Start simulation
-    const startSimulation = async () => {
-        if (simulation.isRunning) return;
-
-        setSimulation({
-            isRunning: true,
-            currentOrderId: null,
-            stage: 'Creating order...',
-            timeRemaining: 0
-        });
-
-        const orderId = await createTestOrder();
-        if (!orderId) {
-            setSimulation({
-                isRunning: false,
-                currentOrderId: null,
-                stage: 'Failed to create order',
-                timeRemaining: 0
-            });
-            return;
-        }
-
-        setSimulation(prev => ({
-            ...prev,
-            currentOrderId: orderId
-        }));
-
-        // Start the flow
-        runSimulation(orderId, 0);
-    };
-
-    // Stop simulation
-    const stopSimulation = () => {
-        if (simulationTimerRef.current) clearTimeout(simulationTimerRef.current);
-        if (countdownRef.current) clearInterval(countdownRef.current);
-        setSimulation({
-            isRunning: false,
-            currentOrderId: null,
-            stage: '',
-            timeRemaining: 0
-        });
-    };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -393,7 +240,7 @@ export default function OrdersPage() {
                 order.order_number,
                 order.customer_name,
                 new Date(order.created_at).toLocaleDateString(),
-                `GH₵ ${order.total.toLocaleString()}`,
+                `GHS ${order.total.toLocaleString()}`,
                 getDisplayStatus(order)
             ]);
             exportToPDF(headers, data, `orders_report_${new Date().getTime()}`, 'Orders Status Report');
@@ -412,11 +259,6 @@ export default function OrdersPage() {
         visible: { opacity: 1, y: 0 }
     };
 
-    const formatTime = (seconds: number) => {
-        const mins = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
-    };
 
     return (
         <motion.div
@@ -425,51 +267,6 @@ export default function OrdersPage() {
             animate="visible"
             variants={containerVariants}
         >
-            {/* Simulation Panel */}
-            <motion.div className={styles.simulationPanel} variants={itemVariants}>
-                <div className={styles.simulationHeader}>
-                    <div className={styles.simulationTitle}>
-                        <Zap size={20} />
-                        <h3>Order Flow Simulation</h3>
-                    </div>
-                    {!simulation.isRunning ? (
-                        <button className={styles.simulateBtn} onClick={startSimulation}>
-                            <Play size={16} />
-                            Start Simulation
-                        </button>
-                    ) : (
-                        <button className={styles.stopBtn} onClick={stopSimulation}>
-                            Stop
-                        </button>
-                    )}
-                </div>
-
-                {simulation.isRunning && (
-                    <div className={styles.simulationProgress}>
-                        <div className={styles.progressStages}>
-                            {ORDER_FLOW_STAGES.map((stage, idx) => (
-                                <div
-                                    key={stage.label}
-                                    className={`${styles.progressStage} ${simulation.stage === stage.label ? styles.activeStage :
-                                            ORDER_FLOW_STAGES.findIndex(s => s.label === simulation.stage) > idx ? styles.completedStage : ''
-                                        }`}
-                                >
-                                    <span className={styles.stageDot}></span>
-                                    <span className={styles.stageLabel}>{stage.label}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className={styles.timerDisplay}>
-                            <Clock size={16} />
-                            <span>Next stage in: <strong>{formatTime(simulation.timeRemaining)}</strong></span>
-                        </div>
-                    </div>
-                )}
-
-                <p className={styles.simulationDesc}>
-                    Creates a test order and progresses it through: Pending (1 min) → Paid (30s) → Processing (30s) → Shipped (30s) → Delivered
-                </p>
-            </motion.div>
 
             <header className={styles.header}>
                 <div className={styles.headerTitle}>
@@ -552,7 +349,6 @@ export default function OrdersPage() {
                                 {filteredOrders.map((order) => {
                                     const status = getDisplayStatus(order);
                                     const isRecentlyUpdated = recentUpdate === order.id;
-                                    const isSimulatedOrder = simulation.currentOrderId === order.id;
 
                                     return (
                                         <motion.tr
@@ -560,15 +356,13 @@ export default function OrdersPage() {
                                             initial={{ opacity: 0, backgroundColor: '#fff' }}
                                             animate={{
                                                 opacity: 1,
-                                                backgroundColor: isRecentlyUpdated ? '#fef3c7' : isSimulatedOrder ? '#dbeafe' : '#fff'
+                                                backgroundColor: isRecentlyUpdated ? '#fef3c7' : '#fff'
                                             }}
                                             transition={{ duration: 0.3 }}
-                                            className={isSimulatedOrder ? styles.simulatedRow : ''}
                                         >
                                             <td data-label="Order ID">
                                                 <span style={{ fontWeight: 700 }}>
                                                     #{order.order_number}
-                                                    {isSimulatedOrder && <span className={styles.liveBadge}>LIVE</span>}
                                                 </span>
                                             </td>
                                             <td data-label="Customer">

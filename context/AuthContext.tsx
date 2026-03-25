@@ -87,14 +87,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
       
-      if (session?.user) {
-        await checkUserRole(session.user.id);
-      } else {
-        setIsAdmin(false);
-        setRole(null);
+      try {
+        if (session?.user) {
+          await checkUserRole(session.user.id);
+        } else {
+          setIsAdmin(false);
+          setRole(null);
+        }
+      } catch (error) {
+        console.error("Auth state change error:", error);
+      } finally {
+        setIsLoading(false);
       }
-      
-      setIsLoading(false);
     });
 
     return () => {

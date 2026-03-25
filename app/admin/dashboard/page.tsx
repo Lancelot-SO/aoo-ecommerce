@@ -162,7 +162,7 @@ export default function AdminDashboard() {
                     const data = allOrders.map(o => [
                         o.order_number,
                         o.customer_name,
-                        `GH₵ ${o.total}`,
+                        `GHS ${o.total}`,
                         o.order_status,
                         new Date(o.created_at).toLocaleDateString()
                     ]);

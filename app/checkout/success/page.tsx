@@ -77,9 +77,9 @@ function SuccessContent() {
         // Items Table
         const tableData = order.items.map((item: any) => [
             item.name + (item.size ? ` (${item.size})` : ""),
-            `GH₵ ${item.price.toLocaleString()}`,
+            `GHS ${item.price.toLocaleString()}`,
             item.quantity,
-            `GH₵ ${(item.price * item.quantity).toLocaleString()}`
+            `GHS ${(item.price * item.quantity).toLocaleString()}`
         ]);
 
         autoTable(doc, {
@@ -95,10 +95,10 @@ function SuccessContent() {
         doc.setFontSize(10);
         doc.setFont("helvetica", "normal");
         doc.text("Subtotal:", 130, finalY);
-        doc.text(`GH₵ ${order.subtotal.toLocaleString()}`, 195, finalY, { align: 'right' });
+        doc.text(`GHS ${order.subtotal.toLocaleString()}`, 195, finalY, { align: 'right' });
         
         doc.text("Delivery Fee:", 130, finalY + 6);
-        doc.text(`GH₵ ${order.delivery_fee.toLocaleString()}`, 195, finalY + 6, { align: 'right' });
+        doc.text(`GHS ${order.delivery_fee.toLocaleString()}`, 195, finalY + 6, { align: 'right' });
         
         // Add a small line before total
         doc.setDrawColor(229, 231, 235);
@@ -107,7 +107,7 @@ function SuccessContent() {
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.text("Total Amount:", 130, finalY + 17);
-        doc.text(`GH₵ ${order.total.toLocaleString()}`, 195, finalY + 17, { align: 'right' });
+        doc.text(`GHS ${order.total.toLocaleString()}`, 195, finalY + 17, { align: 'right' });
 
         // Footer
         doc.setFontSize(10);

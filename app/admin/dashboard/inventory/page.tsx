@@ -232,7 +232,7 @@ export default function InventoryPage() {
                 item.name,
                 item.sku || 'N/A',
                 item.categories?.name || 'Uncategorized',
-                `GH₵ ${item.price}`,
+                `GHS ${item.price}`,
                 item.stock_quantity,
                 item.is_active ? 'Active' : 'Inactive'
             ]);
